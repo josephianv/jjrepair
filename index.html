@@ -5,10 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
 <title>JJ Electronic Repair</title>
 
-<!-- ── PWA: manifest + íconos + comportamiento en pantalla completa (iOS/Android) ── -->
+<!-- ── PWA ── -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#0f2840">
-<!-- iOS: abrir como app de pantalla completa, sin la barra de Safari -->
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="JJ Repair">
@@ -425,7 +424,6 @@ body.dark .alert-banner.warn{background:#3a2a00;color:#FBBF24;border-color:#7a5a
 </style>
 </head>
 <body class="light">
-<!-- Splash screen: visible inmediatamente al abrir la app en Android/iOS. -->
 <div id="app-splash" style="position:fixed;inset:0;z-index:99999;background:#0f2840;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s ease">
   <img src="icons/icon-192.png" style="width:80px;height:80px;border-radius:18px;box-shadow:0 4px 20px rgba(0,0,0,.4)">
   <div style="color:#fff;font-size:18px;font-weight:700;letter-spacing:.5px">JJ Electronic Repair</div>
@@ -441,26 +439,134 @@ function hideSplash(){const s=document.getElementById('app-splash');if(!s)return
 
 <!-- LOGIN -->
 <div id="setup-screen" class="login-wrap hide">
-  <div class="login-box" style="width:380px">
-    <div class="login-logo">
-      <div class="icon">☁️</div>
-      <h1>Conectar a la nube</h1>
-      <p>Configura Firebase una sola vez</p>
+  <div class="login-box" style="width:420px;max-height:90vh;overflow-y:auto">
+
+    <!-- Indicador de pasos -->
+    <div style="display:flex;justify-content:center;gap:8px;padding:18px 0 4px">
+      <div class="setup-dot active" id="dot-1"></div>
+      <div class="setup-dot" id="dot-2"></div>
+      <div class="setup-dot" id="dot-3"></div>
+      <div class="setup-dot" id="dot-4"></div>
     </div>
-    <div class="login-err" id="setup-err">❌ Configuración inválida. Verifica que copiaste el objeto completo.</div>
-    <div class="fg">
-      <label>Pega aquí la configuración de Firebase (firebaseConfig)</label>
-      <textarea id="setup-config" placeholder='{
-  "apiKey": "...",
-  "authDomain": "...",
-  "projectId": "...",
-  ...
+
+    <!-- PASO 1: Bienvenida + nombre del negocio -->
+    <div id="setup-step-1">
+      <div class="login-logo">
+        <div class="icon">🔧</div>
+        <h1>Bienvenido al sistema</h1>
+        <p style="font-size:13px;color:#666;margin-top:6px">Configura tu tienda en 4 pasos simples.<br>Solo necesitas hacerlo una vez.</p>
+      </div>
+      <div class="fg" style="padding:0 14px">
+        <label style="font-weight:600">¿Cómo se llama tu tienda?</label>
+        <input type="text" id="setup-biz-name" placeholder="Ej: Tech Repair PR" style="font-size:15px">
+        <p style="font-size:11px;color:#888;margin-top:4px">Este nombre aparecerá en los recibos y mensajes de WhatsApp.</p>
+      </div>
+      <div style="padding:14px">
+        <button class="btn-b" style="width:100%;justify-content:center;padding:11px" onclick="setupNextStep(1)">Continuar →</button>
+      </div>
+      <p style="font-size:11px;color:#aaa;text-align:center;padding-bottom:14px">¿Necesitas ayuda? <a id="soporte-wa-link" href="https://wa.me/17876190215" target="_blank" style="color:#25D366">💬 Contacta soporte</a></p>
+    </div>
+
+    <!-- PASO 2: Instrucciones Firebase -->
+    <div id="setup-step-2" style="display:none">
+      <div class="login-logo">
+        <div class="icon">☁️</div>
+        <h1>Crear tu base de datos</h1>
+        <p style="font-size:12px;color:#666;margin-top:4px">Firebase es gratis y guarda todos tus datos de forma segura en la nube.</p>
+      </div>
+      <div style="padding:0 14px 14px">
+        <div style="background:#f0f4fa;border-radius:8px;padding:14px;font-size:12px;line-height:1.8">
+          <p style="font-weight:700;margin-bottom:8px;color:#185FA5">Sigue estos pasos (5 minutos):</p>
+          <p>1️⃣ Abre <a href="https://console.firebase.google.com" target="_blank" style="color:#185FA5;font-weight:600">console.firebase.google.com</a> en otra pestaña</p>
+          <p>2️⃣ Haz clic en <strong>"Crear un proyecto"</strong> → ponle el nombre de tu tienda</p>
+          <p>3️⃣ Desactiva Google Analytics (no es necesario) → <strong>"Crear proyecto"</strong></p>
+          <p>4️⃣ En el menú izquierdo → <strong>Build → Firestore Database</strong> → <strong>"Create database"</strong> → elige "Start in production mode" → selecciona cualquier ubicación → <strong>"Done"</strong></p>
+          <p>5️⃣ En el menú izquierdo → <strong>Authentication</strong> → <strong>"Get started"</strong> → habilita <strong>"Email/Password"</strong></p>
+          <p>6️⃣ En el menú izquierdo → <strong>Authentication → Users</strong> → <strong>"Add user"</strong> → crea tu cuenta con tu correo y contraseña</p>
+          <p>7️⃣ Arriba a la izquierda → ícono de <strong>⚙️ (engranaje)</strong> → <strong>"Project settings"</strong> → baja hasta <strong>"Your apps"</strong> → haz clic en <strong>&lt;/&gt;</strong> (Web) → ponle cualquier nombre → <strong>"Register app"</strong></p>
+          <p>8️⃣ Copia el objeto <strong>firebaseConfig</strong> que aparece → pégalo en el siguiente paso</p>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:14px">
+          <button class="btn-o" style="flex:1;justify-content:center;padding:10px" onclick="setupPrevStep(2)">← Atrás</button>
+          <button class="btn-b" style="flex:2;justify-content:center;padding:10px" onclick="setupNextStep(2)">Ya lo tengo →</button>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#aaa;text-align:center;padding-bottom:14px">¿Necesitas ayuda? <a id="soporte-wa-link" href="https://wa.me/17876190215" target="_blank" style="color:#25D366">💬 Contacta soporte</a></p>
+    </div>
+
+    <!-- PASO 3: Pegar firebaseConfig -->
+    <div id="setup-step-3" style="display:none">
+      <div class="login-logo">
+        <div class="icon">📋</div>
+        <h1>Pega tu configuración</h1>
+        <p style="font-size:12px;color:#666;margin-top:4px">Copia el objeto firebaseConfig de Firebase y pégalo aquí.</p>
+      </div>
+      <div style="padding:0 14px 14px">
+        <div class="login-err" id="setup-err">❌ Configuración inválida. Verifica que copiaste el objeto completo.</div>
+        <div class="fg">
+          <label>Pega tu firebaseConfig aquí:</label>
+          <textarea id="setup-config" placeholder='{
+  "apiKey": "AIza...",
+  "authDomain": "tu-proyecto.firebaseapp.com",
+  "projectId": "tu-proyecto",
+  "storageBucket": "tu-proyecto.appspot.com",
+  "messagingSenderId": "123456789",
+  "appId": "1:123456789:web:abc123"
 }' style="min-height:160px;font-family:monospace;font-size:11px"></textarea>
+        </div>
+        <p style="font-size:11px;color:#888;margin-bottom:12px">⚠️ Esta configuración se guarda solo en este dispositivo. Tendrás que repetir este paso en cada dispositivo que uses la app.</p>
+        <div style="display:flex;gap:8px">
+          <button class="btn-o" style="flex:1;justify-content:center;padding:10px" onclick="setupPrevStep(3)">← Atrás</button>
+          <button class="btn-b" style="flex:2;justify-content:center;padding:10px" onclick="setupGuardarConfig()">☁️ Conectar →</button>
+        </div>
+      </div>
+      <p style="font-size:11px;color:#aaa;text-align:center;padding-bottom:14px">¿Necesitas ayuda? <a id="soporte-wa-link" href="https://wa.me/17876190215" target="_blank" style="color:#25D366">💬 Contacta soporte</a></p>
     </div>
-    <button class="btn-b" style="width:100%;justify-content:center;padding:10px" onclick="guardarFirebaseConfig()">☁️ Conectar y continuar</button>
-    <p style="font-size:11px;color:#aaa;text-align:center;margin-top:12px">Esta configuración se guarda en este dispositivo/navegador. Repite este paso en cada dispositivo nuevo, usando la misma configuración de Firebase.</p>
+
+    <!-- PASO 4: Éxito + instrucción de reglas y colección Usuarios -->
+    <div id="setup-step-4" style="display:none">
+      <div class="login-logo">
+        <div class="icon">✅</div>
+        <h1>¡Ya casi listo!</h1>
+        <p style="font-size:12px;color:#666;margin-top:4px">Conectado a Firebase. Dos pasos finales y ya.</p>
+      </div>
+      <div style="padding:0 14px 14px">
+        <div style="background:#f0faf4;border:1px solid #b7dfc4;border-radius:8px;padding:14px;font-size:12px;line-height:1.8;margin-bottom:14px">
+          <p style="font-weight:700;color:#27500A;margin-bottom:8px">Paso final en Firebase Console:</p>
+          <p>1️⃣ Ve a <strong>Firestore Database → Rules</strong> y reemplaza todo el contenido con esto:</p>
+          <pre style="background:#fff;border:1px solid #dde;border-radius:5px;padding:8px;font-size:10px;overflow-x:auto;margin:6px 0">rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function rol() {
+      return get(/databases/$(database)/documents/Usuarios/$(request.auth.uid)).data.rol;
+    }
+    function esAdmin() { return request.auth != null && rol() == 'admin'; }
+    function auth() { return request.auth != null; }
+    match /Usuarios/{uid} {
+      allow read: if request.auth != null && request.auth.uid == uid;
+      allow write: if false;
+    }
+    match /{col}/{doc} {
+      allow read: if auth();
+      allow create, update: if auth();
+      allow delete: if esAdmin();
+    }
+  }
+}</pre>
+          <p>2️⃣ Haz clic en <strong>"Publicar"</strong></p>
+          <p>3️⃣ Ve a <strong>Firestore → Data</strong> → crea una colección llamada <strong>Usuarios</strong> (con U mayúscula) → dentro crea un documento con ID = el UID de tu cuenta (lo ves en Authentication → Users) → agrega un campo <strong>rol</strong> (string) = <strong>admin</strong></p>
+        </div>
+        <button class="btn-b" style="width:100%;justify-content:center;padding:11px" onclick="setupTerminar()">🚀 Entrar a la app</button>
+      </div>
+      <p style="font-size:11px;color:#aaa;text-align:center;padding-bottom:14px">¿Necesitas ayuda? <a id="soporte-wa-link" href="https://wa.me/17876190215" target="_blank" style="color:#25D366">💬 Contacta soporte</a></p>
+    </div>
+
   </div>
 </div>
+<style>
+.setup-dot{width:8px;height:8px;border-radius:50%;background:#ccd8e8;transition:background .3s}
+.setup-dot.active{background:#185FA5}
+</style>
 
 <div id="login-screen" class="login-wrap hide">
   <div class="login-box">
@@ -1222,6 +1328,14 @@ applyLang(currentLang);
 
 // ── FIREBASE / FIRESTORE (sincronización en la nube + offline) ──
 const FB_CONFIG_KEY = 'jjrepair_fbconfig';
+// ── SOPORTE: cambia este número para mostrar tu WhatsApp en el wizard ──
+const SOPORTE_WA = '17876190215'; // formato: código de país + número sin espacios
+// Actualiza todos los links de soporte con el número correcto al cargar
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('#soporte-wa-link').forEach(a=>{
+    a.href='https://wa.me/'+SOPORTE_WA;
+  });
+});
 let fbApp = null, fsDB = null, fbAuth = null, fbReady = false;
 let authListenerSet = false;
 let userRole = null; // 'admin' | 'tecnico' | null (aún no cargado)
@@ -1395,24 +1509,84 @@ function mostrarSetup(){
   document.getElementById('login-screen').classList.add('hide');
   document.getElementById('setup-screen').classList.remove('hide');
   const cfg = getFirebaseConfig();
-  if(cfg) document.getElementById('setup-config').value = JSON.stringify(cfg, null, 2);
+  if(cfg){
+    // Si ya tiene config, va directo al paso 3 para que pueda cambiarla
+    setupGoToStep(3);
+    document.getElementById('setup-config').value = JSON.stringify(cfg, null, 2);
+  } else {
+    setupGoToStep(1);
+  }
 }
 
-function guardarFirebaseConfig(){
+function setupGoToStep(n){
+  [1,2,3,4].forEach(i=>{
+    document.getElementById('setup-step-'+i).style.display = i===n ? '' : 'none';
+    const dot=document.getElementById('dot-'+i);
+    if(dot) dot.classList.toggle('active', i<=n);
+  });
+}
+
+function setupNextStep(current){
+  if(current===1){
+    const nombre=document.getElementById('setup-biz-name').value.trim();
+    if(!nombre){ alert('⚠️ Ingresa el nombre de tu tienda para continuar.'); return; }
+    localStorage.setItem('jjrepair_pending_bizname', nombre);
+  }
+  setupGoToStep(current+1);
+}
+
+function setupPrevStep(current){
+  setupGoToStep(current-1);
+}
+
+function setupGuardarConfig(){
   const txt = document.getElementById('setup-config').value.trim();
   const err = document.getElementById('setup-err');
-  let cfg;
-  try{
-    cfg = JSON.parse(txt);
-    if(!cfg.apiKey || !cfg.projectId) throw new Error('faltan campos');
-  }catch(e){
+  let cfg = null;
+  // Intenta primero JSON estricto, luego evalúa como objeto JS
+  // (Firebase a veces muestra el config con keys sin comillas)
+  try{ cfg = JSON.parse(txt); }catch(e){
+    try{
+      // Extrae solo el objeto del bloque de código si viene con "const firebaseConfig = {...}"
+      const match = txt.match(/\{[\s\S]*\}/);
+      if(match) cfg = JSON.parse(
+        match[0].replace(/([{,]\s*)(\w+)(\s*:)/g, '$1"$2"$3').replace(/'/g,'"')
+      );
+    }catch(e2){ cfg = null; }
+  }
+  if(!cfg || !cfg.apiKey || !cfg.projectId){
     err.style.display='block';
-    setTimeout(()=>err.style.display='none', 3000);
+    setTimeout(()=>err.style.display='none', 3500);
     return;
   }
   localStorage.setItem(FB_CONFIG_KEY, JSON.stringify(cfg));
+  setupGoToStep(4);
+  initFirebase(); // conecta en background mientras el usuario lee el paso 4
+}
+
+function setupTerminar(){
+  // Aplica el nombre del negocio que se ingresó en el paso 1 (si viene de onboarding nuevo)
+  const pendingName = localStorage.getItem('jjrepair_pending_bizname');
+  if(pendingName){
+    localStorage.removeItem('jjrepair_pending_bizname');
+    // Se guardará en Firestore cuando loadData termine y el usuario entre
+    // Por ahora lo aplicamos visualmente para que se vea bien en el login
+    const loginTitle = document.getElementById('biz-name-login');
+    if(loginTitle) loginTitle.textContent = pendingName;
+    // Lo guardamos temporalmente para que guardarBizName lo tome al cargar
+    window._pendingBizName = pendingName;
+  }
   document.getElementById('setup-screen').classList.add('hide');
-  initFirebase();
+  // initFirebase ya fue llamado en setupGuardarConfig; si ya conectó,
+  // onAuthStateChanged habrá mostrado el login o la app automáticamente.
+  // Si aún no conectó, lo intentamos ahora por si acaso.
+  if(!fbReady) initFirebase();
+}
+
+// Mantener compatibilidad: guardarFirebaseConfig sigue funcionando
+// para el caso de "Cambiar configuración de nube" desde el login.
+function guardarFirebaseConfig(){
+  setupGuardarConfig();
 }
 
 function updateConnStatus(text, ok){
@@ -1544,6 +1718,12 @@ async function loadData(){
   renderLogoPreview();
   const bn=await dbGet('config','businessName');
   businessName=bn&&bn.value?bn.value:'JJ Electronic Repair';
+  // Si viene del onboarding nuevo (paso 1), guardamos el nombre en Firestore
+  if(window._pendingBizName && (!bn || !bn.value)){
+    businessName=window._pendingBizName;
+    await dbPut('config',{key:'businessName',value:businessName});
+    window._pendingBizName=null;
+  }
   const bt=await dbGet('config','businessTel');
   businessTel=bt&&bt.value?bt.value:'';
   const bd=await dbGet('config','businessDir');
@@ -3576,18 +3756,15 @@ document.getElementById('pw-in').addEventListener('keydown',e=>{if(e.key==='Ente
 // Al cargar: si ya hay configuración de Firebase guardada, conectar
 // directamente y mostrar el login. Si no, mostrar pantalla de setup.
 (function startApp(){
-  // Timeout de seguridad: si en 8 segundos el splash sigue visible
-  // (por cualquier fallo de red/Firebase), lo ocultamos para que el
-  // usuario no quede bloqueado con la pantalla de carga infinita.
-  setTimeout(hideSplash, 8000);
   const cfg = getFirebaseConfig();
   if(cfg){
-    initFirebase(); // async — el hideSplash lo llama internamente según el resultado
+    initFirebase();
   } else {
     document.getElementById('login-screen').classList.add('hide');
     document.getElementById('setup-screen').classList.remove('hide');
     hideSplash();
   }
+  setTimeout(hideSplash, 8000); // timeout de seguridad
 })();
 
 if('serviceWorker' in navigator){
