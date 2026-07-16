@@ -143,6 +143,7 @@ body.dark .tbl td{border-color:#2a2a2a;color:#ccc}
 body.light .tbl tr:hover td{background:#f5f8fc}
 body.dark .tbl tr:hover td{background:#252525}
 .ab{display:flex;gap:5px;flex-wrap:wrap}
+.tbl td.ab-cell{overflow:visible;white-space:normal}
 .xb{padding:5px 9px;border-radius:6px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;transition:transform .1s,opacity .1s;font-weight:500}
 body.light .xb{border:1px solid #ccd8e8;background:#fff;color:#1a3a5c}
 body.dark .xb{border:1px solid #444;background:#2a2a2a;color:#ccc}
@@ -185,6 +186,13 @@ body.light .htile:hover{background:#e8f0fa;border-color:#85B7EB;box-shadow:0 6px
 body.dark .htile:hover{background:#252525;border-color:#555}
 .htile:hover{transform:translateY(-2px)}
 .htile:active{transform:translateY(0)}
+.htile.htile-venta{border-width:2px}
+body.light .htile.htile-venta{background:#EAF7E4;border-color:#6EBF4A}
+body.dark .htile.htile-venta{background:#16260f;border-color:#4a8a2a}
+body.light .htile.htile-venta:hover{background:#DCF2D2;border-color:#4CA82E}
+body.dark .htile.htile-venta:hover{background:#1c2f13;border-color:#5aa233}
+.htile.htile-venta span{color:#2C6E1A!important}
+body.dark .htile.htile-venta span{color:#7dd15a!important}
 .htile .ticon{font-size:32px}
 .htile span{font-size:12px;font-weight:600;text-align:center}
 body.light .htile span{color:#1a3a5c}
@@ -420,6 +428,13 @@ body.dark .alert-banner.warn{background:#3a2a00;color:#FBBF24;border-color:#7a5a
   .sec-bar{padding:6px 10px}
   /* price edit */
   .price-edit-row{flex-wrap:wrap}
+  /* tables: scroll horizontally instead of crushing the actions column */
+  .tbl{table-layout:auto;min-width:520px}
+  .tbl td.ab-cell{white-space:nowrap}
+  .tbl td.ab-cell .ab{flex-wrap:nowrap}
+  .tbl td.ab-cell .xb{padding:7px 10px;font-size:13px}
+  /* clients table: hide email on small screens, it's least critical */
+  #clientes-tbl .col-email{display:none}
 }
 </style>
 </head>
@@ -631,6 +646,7 @@ service cloud.firestore {
         <div class="htile" onclick="go('casos')"><div class="ticon">🔧</div><span data-i18n="reparaciones">Reparaciones</span></div>
         <div class="htile" onclick="go('clientes')"><div class="ticon">👥</div><span data-i18n="clientes">Clientes</span></div>
         <div class="htile" onclick="go('nuevo')"><div class="ticon">📋</div><span data-i18n="nuevo_caso">Nuevo caso</span></div>
+        <div class="htile htile-venta" onclick="go('venta')"><div class="ticon">💰</div><span data-i18n="venta">Vender</span></div>
         <div class="htile" onclick="filterAndGo('estado','listo')"><div class="ticon">📦</div><span data-i18n="listos_entregar">Listos p/ entregar</span></div>
         <div class="htile" onclick="filterAndGo('estado','recibido')"><div class="ticon">📱</div><span data-i18n="recien_recibidos">Recién recibidos</span></div>
         <div class="htile" onclick="filterAndGo('pago','pendiente')"><div class="ticon">💳</div><span data-i18n="pagos_pendientes">Pagos pendientes</span></div>
@@ -2050,11 +2066,11 @@ function renderClientes(){
   const list=clients.filter(c=>!q||c.nombre.toLowerCase().includes(q)||c.tel.includes(q));
   const el=document.getElementById('clientes-tbl');
   if(!list.length){el.innerHTML='<div class="empty"><span class="ei">👥</span>Sin clientes</div>';return}
-  el.innerHTML=`<table class="tbl"><thead><tr><th style="width:42px"></th><th>Nombre</th><th style="width:120px">Teléfono</th><th>Email</th><th style="width:60px">Casos</th><th style="width:120px">Acciones</th></tr></thead><tbody>`+
+  el.innerHTML=`<table class="tbl"><thead><tr><th style="width:42px"></th><th>Nombre</th><th style="width:110px">Teléfono</th><th class="col-email">Email</th><th style="width:50px">Casos</th><th style="width:96px">Acciones</th></tr></thead><tbody>`+
   list.map(c=>{
     const n=casos.filter(k=>k.cid===c.id).length;
     const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${n}</span></td><td><div class="ab"><button class="xb" onclick="histCliente('${c.id}')">📋</button><button class="xb" onclick="editarCliente('${c.id}')">✏️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')">🗑</button></div></td></tr>`;
+    return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td class="col-email" style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${n}</span></td><td class="ab-cell"><div class="ab"><button class="xb" onclick="histCliente('${c.id}')" title="Historial">📋</button><button class="xb" onclick="editarCliente('${c.id}')" title="Editar">✏️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')" title="Eliminar">🗑</button></div></td></tr>`;
   }).join('')+'</tbody></table>';
   applyRolePermissions();
 }
