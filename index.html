@@ -154,6 +154,19 @@ body.dark .xb{border:1px solid #444;background:#2a2a2a;color:#ccc}
 body.dark .xb.d{color:#ff6b6b!important;border-color:#7a2020!important}
 body.dark .xb.g{color:#7dbf4e!important;border-color:#3a6020!important}
 
+/* CLIENT CARDS (mobile) */
+.cli-card{border-radius:12px;padding:12px 14px;margin-bottom:10px;transition:box-shadow .15s}
+body.light .cli-card{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
+body.dark .cli-card{background:#1e1e1e;border:1px solid #333}
+.cli-card-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.cli-card-info{flex:1;min-width:0}
+.cli-card-name{font-size:14px;font-weight:600}
+body.light .cli-card-name{color:#1a3a5c}
+body.dark .cli-card-name{color:#e0e0e0}
+.cli-card-sub{font-size:12px;opacity:.7;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cli-card-actions{display:flex;gap:6px}
+.cli-card-actions .xb{flex:1;justify-content:center;padding:9px 6px;font-size:12px}
+
 /* BADGES */
 .eb{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap;letter-spacing:.2px}
 .er{background:#FAEEDA;color:#633806}.ep{background:#E6F1FB;color:#0C447C}
@@ -2066,12 +2079,35 @@ function renderClientes(){
   const list=clients.filter(c=>!q||c.nombre.toLowerCase().includes(q)||c.tel.includes(q));
   const el=document.getElementById('clientes-tbl');
   if(!list.length){el.innerHTML='<div class="empty"><span class="ei">👥</span>Sin clientes</div>';return}
-  el.innerHTML=`<table class="tbl"><thead><tr><th style="width:42px"></th><th>Nombre</th><th style="width:110px">Teléfono</th><th class="col-email">Email</th><th style="width:50px">Casos</th><th style="width:96px">Acciones</th></tr></thead><tbody>`+
-  list.map(c=>{
-    const n=casos.filter(k=>k.cid===c.id).length;
-    const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-    return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td class="col-email" style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${n}</span></td><td class="ab-cell"><div class="ab"><button class="xb" onclick="histCliente('${c.id}')" title="Historial">📋</button><button class="xb" onclick="editarCliente('${c.id}')" title="Editar">✏️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')" title="Eliminar">🗑</button></div></td></tr>`;
-  }).join('')+'</tbody></table>';
+  const isMobile=window.matchMedia('(max-width:700px)').matches;
+  if(isMobile){
+    el.innerHTML=list.map(c=>{
+      const n=casos.filter(k=>k.cid===c.id).length;
+      const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      return`<div class="cli-card">
+        <div class="cli-card-top">
+          <div class="avt">${ini}</div>
+          <div class="cli-card-info">
+            <div class="cli-card-name">${c.nombre}</div>
+            <div class="cli-card-sub">📞 ${c.tel}${c.email?' · ✉️ '+c.email:''}</div>
+          </div>
+          <span class="eb ep" title="Casos">${n}</span>
+        </div>
+        <div class="cli-card-actions">
+          <button class="xb" onclick="histCliente('${c.id}')">📋 Historial</button>
+          <button class="xb" onclick="editarCliente('${c.id}')">✏️ Editar</button>
+          <button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')">🗑 Eliminar</button>
+        </div>
+      </div>`;
+    }).join('');
+  } else {
+    el.innerHTML=`<table class="tbl"><thead><tr><th style="width:42px"></th><th>Nombre</th><th style="width:110px">Teléfono</th><th class="col-email">Email</th><th style="width:50px">Casos</th><th style="width:96px">Acciones</th></tr></thead><tbody>`+
+    list.map(c=>{
+      const n=casos.filter(k=>k.cid===c.id).length;
+      const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+      return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td class="col-email" style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${n}</span></td><td class="ab-cell"><div class="ab"><button class="xb" onclick="histCliente('${c.id}')" title="Historial">📋</button><button class="xb" onclick="editarCliente('${c.id}')" title="Editar">✏️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')" title="Eliminar">🗑</button></div></td></tr>`;
+    }).join('')+'</tbody></table>';
+  }
   applyRolePermissions();
 }
 function fillSel(){
@@ -3801,6 +3837,16 @@ function enviarWA(){
 
 // ── INIT ──────────────────────────────────────────────────────
 document.getElementById('pw-in').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
+
+// Re-renderiza clientes al cruzar el punto de quiebre móvil/escritorio
+let clientesMqLast=window.matchMedia('(max-width:700px)').matches;
+window.addEventListener('resize',()=>{
+  const nowMobile=window.matchMedia('(max-width:700px)').matches;
+  if(nowMobile!==clientesMqLast){
+    clientesMqLast=nowMobile;
+    if(document.getElementById('screen-clientes')?.classList.contains('active')) renderClientes();
+  }
+});
 
 // Al cargar: si ya hay configuración de Firebase guardada, conectar
 // directamente y mostrar el login. Si no, mostrar pantalla de setup.
