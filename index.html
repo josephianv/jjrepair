@@ -167,6 +167,55 @@ body.dark .cli-card-name{color:#e0e0e0}
 .cli-card-actions{display:flex;gap:6px}
 .cli-card-actions .xb{flex:1;justify-content:center;padding:9px 6px;font-size:12px}
 
+/* REPAIR CARDS (mobile) */
+.caso-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
+body.light .caso-card{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
+body.dark .caso-card{background:#1e1e1e;border:1px solid #333}
+.caso-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.caso-card-precio{font-size:14px;font-weight:700}
+.caso-card-equipo{font-size:13px;font-weight:600;margin-bottom:4px}
+body.light .caso-card-equipo{color:#1a3a5c}
+body.dark .caso-card-equipo{color:#e0e0e0}
+.caso-card-cliente{font-size:12px;opacity:.75;margin-bottom:8px}
+.caso-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.caso-card-actions{display:flex;gap:6px}
+.caso-card-actions .xb{flex:1;justify-content:center;padding:9px 4px;font-size:11.5px}
+
+/* INVENTORY CARDS (mobile) */
+.inv-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
+body.light .inv-card{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
+body.dark .inv-card{background:#1e1e1e;border:1px solid #333}
+.inv-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
+.inv-card-info{min-width:0}
+.inv-card-name{font-size:13px;font-weight:600}
+body.light .inv-card-name{color:#1a3a5c}
+body.dark .inv-card-name{color:#e0e0e0}
+.inv-card-sub{font-size:11px;opacity:.6;margin-top:2px}
+.inv-card-mid{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid rgba(128,128,128,.15);border-bottom:1px solid rgba(128,128,128,.15);margin-bottom:10px}
+.inv-card-precio{font-size:14px;font-weight:700}
+.inv-card-actions{display:flex;gap:6px}
+.inv-card-actions .xb{flex:1;justify-content:center;padding:9px 6px;font-size:12px}
+
+/* CART CARDS (mobile, Vender screen) */
+.cart-card{border-radius:10px;padding:10px 12px;margin-bottom:8px}
+body.light .cart-card{background:#fff;border:1px solid #ccd8e8}
+body.dark .cart-card{background:#1e1e1e;border:1px solid #333}
+.cart-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.cart-card-name{font-size:13px;font-weight:600;flex:1;min-width:0}
+.cart-card-bottom{display:flex;align-items:center;gap:10px;font-size:12px;flex-wrap:wrap}
+.cart-card-bottom label{display:flex;align-items:center;gap:6px;opacity:.8}
+.cart-card-bottom input{width:52px;font-size:12px;padding:4px 6px;border:1px solid #ccd8e8;border-radius:4px}
+.cart-card-bottom strong{margin-left:auto;font-size:13px}
+
+/* SALES HISTORY CARDS (mobile) */
+.venta-card{border-radius:10px;padding:10px 12px;margin-bottom:8px}
+body.light .venta-card{background:#fff;border:1px solid #ccd8e8}
+body.dark .venta-card{background:#1e1e1e;border:1px solid #333}
+.venta-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}
+.venta-card-mid{font-size:12px;opacity:.75;margin-bottom:8px}
+.venta-card-actions{display:flex;gap:6px}
+.venta-card-actions .xb{flex:1;justify-content:center;padding:8px 4px;font-size:11.5px}
+
 /* BADGES */
 .eb{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600;white-space:nowrap;letter-spacing:.2px}
 .er{background:#FAEEDA;color:#633806}.ep{background:#E6F1FB;color:#0C447C}
@@ -2056,6 +2105,24 @@ function renderCasos(){
   ).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const el=document.getElementById('casos-tbl');
   if(!list.length){el.innerHTML='<div class="empty"><span class="ei">🔧</span>Sin resultados</div>';return}
+  if(isMobileView()){
+    el.innerHTML=list.map(c=>`<div class="caso-card">
+      <div class="caso-card-top">
+        <span class="caso-num">#${c.id.slice(-4).toUpperCase()}</span>
+        <span class="caso-card-precio">$${Number(c.precio).toFixed(2)}</span>
+      </div>
+      <div class="caso-card-equipo">${ico(c.tipo)} <strong>${c.modelo}</strong>${sinMovimiento(c)?' <span title="Sin movimiento +7 días">⚠️</span>':''}</div>
+      <div class="caso-card-cliente">👤 ${cn(c.cid)} &nbsp;·&nbsp; 📅 ${fmtD(c.fecha)}</div>
+      <div class="caso-card-badges">${bEst(c.estado)} ${bPago(c.pago)}</div>
+      <div class="caso-card-actions">
+        <button class="xb" onclick="verDetalle('${c.id}')">👁 Ver</button>
+        <button class="xb g" onclick="showReceipt('${c.id}')">🧾 Recibo</button>
+        <button class="xb d btn-eliminar-admin" onclick="delCaso('${c.id}')">🗑 Eliminar</button>
+      </div>
+    </div>`).join('');
+    applyRolePermissions();
+    return;
+  }
   el.innerHTML=`<table class="tbl"><thead><tr>
     <th style="width:60px">#</th><th style="width:140px">Equipo</th><th style="width:130px">Cliente</th>
     <th style="width:80px">Fecha</th><th style="width:90px">Estado</th><th style="width:80px">Pago</th>
@@ -2079,7 +2146,7 @@ function renderClientes(){
   const list=clients.filter(c=>!q||c.nombre.toLowerCase().includes(q)||c.tel.includes(q));
   const el=document.getElementById('clientes-tbl');
   if(!list.length){el.innerHTML='<div class="empty"><span class="ei">👥</span>Sin clientes</div>';return}
-  const isMobile=window.matchMedia('(max-width:700px)').matches;
+  const isMobile=isMobileView();
   if(isMobile){
     el.innerHTML=list.map(c=>{
       const n=casos.filter(k=>k.cid===c.id).length;
@@ -2169,6 +2236,32 @@ function renderInventario(){
   list=list.slice().sort((a,b)=>a.nombre.localeCompare(b.nombre));
   const el=document.getElementById('inv-tbl');
   if(!list.length){el.innerHTML='<div class="empty"><span class="ei">📦</span>Sin piezas que coincidan</div>';return}
+  if(isMobileView()){
+    el.innerHTML=list.map(it=>`<div class="inv-card">
+      <div class="inv-card-top">
+        <div class="inv-card-info">
+          <div class="inv-card-name">${it.nombre}</div>
+          <div class="inv-card-sub">${it.sku||'—'} · ${it.categoria}</div>
+        </div>
+        ${invStatusBadge(invStatus(it))}
+      </div>
+      <div class="inv-card-mid">
+        <span class="inv-card-precio">$${Number(it.precio).toFixed(2)}</span>
+        <div class="ab" style="align-items:center">
+          <button class="xb" style="padding:6px 12px" onclick="ajustarStock('${it.id}',-1)">−</button>
+          <span style="font-weight:700;min-width:26px;text-align:center;display:inline-block">${it.stock}</span>
+          <button class="xb" style="padding:6px 12px" onclick="ajustarStock('${it.id}',1)">+</button>
+        </div>
+        <span style="font-size:11px;opacity:.6">mín. ${it.min}</span>
+      </div>
+      <div class="inv-card-actions">
+        <button class="xb" onclick="editarInv('${it.id}')">✏️ Editar</button>
+        <button class="xb d btn-eliminar-admin" onclick="delInv('${it.id}')">🗑 Eliminar</button>
+      </div>
+    </div>`).join('');
+    applyRolePermissions();
+    return;
+  }
   el.innerHTML=`<table class="tbl"><thead><tr><th>Producto</th><th style="width:160px">Categoría</th><th style="width:80px">Precio</th><th style="width:110px">Stock</th><th style="width:70px">Mín.</th><th style="width:100px">Estado</th><th style="width:130px">Acciones</th></tr></thead><tbody>`+
   list.map(it=>{
     return `<tr>
@@ -2330,6 +2423,18 @@ function renderCarrito(){
   if(!el)return;
   if(!carrito.length){
     el.innerHTML='<div class="empty" style="padding:24px 12px"><span class="ei">🛒</span>Carrito vacío. Agrega productos arriba.</div>';
+  } else if(isMobileView()){
+    el.innerHTML=carrito.map((c,i)=>`<div class="cart-card">
+      <div class="cart-card-top">
+        <span class="cart-card-name">${c.nombre}</span>
+        <button class="xb d" style="padding:4px 8px" onclick="removeCarrito(${i})">🗑</button>
+      </div>
+      <div class="cart-card-bottom">
+        <label>Cant. <input type="number" min="1" step="1" value="${c.cantidad}" onchange="changeCarritoCant(${i},this.value)"></label>
+        <span>$${Number(c.precio).toFixed(2)} c/u</span>
+        <strong>$${(c.precio*c.cantidad).toFixed(2)}</strong>
+      </div>
+    </div>`).join('');
   } else {
     el.innerHTML='<table class="tbl"><thead><tr><th>Producto</th><th style="width:70px">Cant.</th><th style="width:80px">Precio</th><th style="width:80px">Subtotal</th><th style="width:40px"></th></tr></thead><tbody>'+
       carrito.map((c,i)=>`<tr>
@@ -2524,6 +2629,22 @@ function renderVentasHist(){
   if(!el)return;
   if(!ventas.length){el.innerHTML='<div class="empty" style="padding:20px"><span class="ei">🧾</span>Aún no hay ventas registradas</div>';return}
   const list=ventas.slice().sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).slice(0,20);
+  if(isMobileView()){
+    el.innerHTML=list.map(v=>`<div class="venta-card">
+      <div class="venta-card-top">
+        <span class="venta-card-fecha">${new Date(v.fecha).toLocaleString('es-PR')}</span>
+        <strong>$${Number(v.total).toFixed(2)}</strong>
+      </div>
+      <div class="venta-card-mid">👤 ${v.cliente} · ${v.items.reduce((s,i)=>s+i.cantidad,0)} unid.</div>
+      <div class="venta-card-actions">
+        <button class="xb" onclick="showVentaReceipt('${v.id}')">🧾 Ver</button>
+        <button class="xb btn-eliminar-admin" onclick="editarVenta('${v.id}')">✏️ Editar</button>
+        <button class="xb d btn-eliminar-admin" onclick="borrarVenta('${v.id}')">🗑 Eliminar</button>
+      </div>
+    </div>`).join('');
+    applyRolePermissions();
+    return;
+  }
   el.innerHTML='<table class="tbl"><thead><tr><th>Fecha</th><th>Cliente</th><th>Items</th><th>Total</th><th style="width:80px"></th></tr></thead><tbody>'+
     list.map(v=>`<tr>
       <td style="font-size:12px">${new Date(v.fecha).toLocaleString('es-PR')}</td>
@@ -3514,7 +3635,8 @@ function exportarReportePDF(){
 }
 
 // ── NAVIGATION ─────────────────────────────────────────────────
-function go(s){
+let currentScreen='inicio';
+function goScreen(s){
   if(s==='reporte' && userRole!=='admin'){
     alert('Solo el administrador puede ver los reportes financieros.');
     return;
@@ -3538,7 +3660,31 @@ function go(s){
   if(s==='inicio')renderStats();
   if(s==='reporte')renderReporte();
   updateBadges();
+  currentScreen=s;
 }
+function go(s){
+  if(s==='reporte' && userRole!=='admin'){
+    alert('Solo el administrador puede ver los reportes financieros.');
+    return;
+  }
+  if(s!==currentScreen){
+    history.pushState({screen:s},'','#'+s);
+  }
+  goScreen(s);
+}
+// El botón de back del teléfono navega entre pantallas de la app en vez de salir a otra página.
+// Si hay un modal abierto, el back lo cierra primero (como se espera en cualquier app).
+window.addEventListener('popstate',(e)=>{
+  const openModalEl=document.querySelector('.modal-bg:not(.hide)');
+  if(openModalEl){
+    openModalEl.classList.add('hide');
+    history.pushState({screen:currentScreen},'','#'+currentScreen);
+    return;
+  }
+  const s=(e.state&&e.state.screen)||'inicio';
+  goScreen(s);
+});
+if(!history.state){ history.replaceState({screen:'inicio'},'','#inicio'); }
 function filterAndGo(type,val){
   go('casos');
   if(type==='estado'){document.getElementById('f-est').value=val;document.getElementById('f-pago').value=''}
@@ -3836,15 +3982,18 @@ function enviarWA(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-document.getElementById('pw-in').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin()});
-
-// Re-renderiza clientes al cruzar el punto de quiebre móvil/escritorio
-let clientesMqLast=window.matchMedia('(max-width:700px)').matches;
+// Re-renderiza vistas de tarjeta al cruzar el punto de quiebre móvil/escritorio
+function isMobileView(){ return window.matchMedia('(max-width:700px)').matches; }
+let mqLast=isMobileView();
 window.addEventListener('resize',()=>{
-  const nowMobile=window.matchMedia('(max-width:700px)').matches;
-  if(nowMobile!==clientesMqLast){
-    clientesMqLast=nowMobile;
-    if(document.getElementById('screen-clientes')?.classList.contains('active')) renderClientes();
+  const nowMobile=isMobileView();
+  if(nowMobile!==mqLast){
+    mqLast=nowMobile;
+    const active=document.querySelector('.screen.active')?.id;
+    if(active==='screen-clientes') renderClientes();
+    else if(active==='screen-casos') renderCasos();
+    else if(active==='screen-inventario') renderInventario();
+    else if(active==='screen-venta') renderVentaScreen();
   }
 });
 
