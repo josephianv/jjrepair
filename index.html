@@ -166,6 +166,30 @@ body.dark .cli-card-name{color:#e0e0e0}
 .cli-card-sub{font-size:12px;opacity:.7;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cli-card-actions{display:flex;gap:6px}
 .cli-card-actions .xb{flex:1;justify-content:center;padding:9px 6px;font-size:12px}
+.cli-card-gasto{font-size:12px;padding:6px 0;margin-bottom:8px;border-top:1px solid rgba(128,128,128,.15)}
+.cli-card-gasto strong{color:#2C6E1A}
+body.dark .cli-card-gasto strong{color:#7dd15a}
+
+/* Client spending summary (Historial modal) */
+.gasto-resumen{padding:12px;border-bottom:1px solid rgba(0,0,0,.08)}
+.gasto-total{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:10px}
+.gasto-total strong{font-size:20px;color:#2C6E1A}
+body.dark .gasto-total strong{color:#7dd15a}
+.gasto-split{display:flex;gap:10px}
+.gasto-split>div{flex:1;text-align:center;padding:10px 6px;border-radius:10px}
+body.light .gasto-split>div{background:#f2f6fb;border:1px solid #dde6f0}
+body.dark .gasto-split>div{background:#242424;border:1px solid #333}
+.gasto-split span{display:block;font-size:11px;opacity:.7;margin-bottom:4px}
+.gasto-split strong{display:block;font-size:15px;font-weight:700}
+.gasto-split small{display:block;font-size:10px;opacity:.6;margin-top:2px}
+
+/* Combined transaction cards (Historial modal, mobile) */
+.tx-card{border-radius:10px;padding:10px 12px;margin:8px 12px}
+body.light .tx-card{background:#fff;border:1px solid #ccd8e8}
+body.dark .tx-card{background:#1e1e1e;border:1px solid #333}
+.tx-card-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-bottom:2px}
+.tx-card-sub{font-size:11px;opacity:.65;margin-bottom:8px}
+.tx-card-bottom{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;opacity:.85}
 
 /* REPAIR CARDS (mobile) */
 .caso-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
@@ -1164,6 +1188,53 @@ service cloud.firestore {
   </div>
 </div>
 
+<!-- MODAL EMITIR CRÉDITO -->
+<div id="modal-credito" class="modal-bg hide">
+  <div class="modal" style="max-width:420px">
+    <div class="mhead"><h2>🎟️ Emitir crédito en tienda</h2><button class="mclose" onclick="closeModal('modal-credito')">✕</button></div>
+    <div class="mbody">
+      <div style="display:flex;align-items:center;gap:10px;padding:4px 0 14px;border-bottom:1px solid rgba(0,0,0,.08);margin-bottom:12px">
+        <div class="avt" id="credito-cli-avt"></div>
+        <div><div style="font-size:14px;font-weight:600" id="credito-cli-nombre"></div>
+        <div style="font-size:12px;opacity:.7">Crédito disponible: <strong id="credito-cli-balance">$0.00</strong></div></div>
+      </div>
+      <div class="fg"><label>Monto del crédito *</label><input type="number" min="0.01" step="0.01" id="credito-monto" placeholder="0.00"></div>
+      <div class="fg"><label>Motivo *</label>
+        <select id="credito-motivo" onchange="document.getElementById('credito-motivo-otro').style.display=this.value==='Otro'?'block':'none'">
+          <option value="Devolución de producto">Devolución de producto</option>
+          <option value="Reparación no satisfactoria">Reparación no satisfactoria</option>
+          <option value="Cortesía">Cortesía</option>
+          <option value="Otro">Otro</option>
+        </select>
+      </div>
+      <div class="fg" id="credito-motivo-otro" style="display:none"><label>Especificar motivo</label><input type="text" id="credito-motivo-libre" placeholder="Detalle del motivo"></div>
+      <div class="fg"><label>Referencia (opcional)</label>
+        <select id="credito-ref"><option value="">— Sin referencia —</option></select>
+      </div>
+    </div>
+    <div class="mfoot">
+      <button class="btn-o" onclick="closeModal('modal-credito')">Cancelar</button>
+      <button class="btn-b" onclick="guardarCredito()">🎟️ Emitir crédito</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL RECIBO DE CRÉDITO -->
+<div id="modal-rec-credito" class="modal-bg hide">
+  <div class="modal" style="max-width:420px">
+    <div class="mhead"><h2>🎟️ Recibo de crédito</h2><button class="mclose" onclick="closeModal('modal-rec-credito')">✕</button></div>
+    <div class="mbody" id="receipt-credito-content"></div>
+    <div class="mfoot no-print" style="flex-wrap:wrap;gap:8px">
+      <button class="btn-b" onclick="window.print()">🖨️ Imprimir</button>
+      <button onclick="enviarCreditoWA()" style="background:#25D366;color:#fff;border:none;border-radius:6px;padding:8px 14px;font-size:13px;cursor:pointer;font-weight:500;display:inline-flex;align-items:center;gap:6px">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Enviar por WhatsApp
+      </button>
+      <button class="btn-o" onclick="closeModal('modal-rec-credito')">Cerrar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL ÉXITO DE VENTA -->
 <div id="modal-venta-exito" class="modal-bg hide">
   <div class="modal" style="max-width:380px;text-align:center">
@@ -1794,7 +1865,7 @@ function openDB(){
 }
 
 // ── State ──────────────────────────────────────────────────────
-let clients=[],casos=[],inventario=[],ventas=[],carrito=[],currentVentaId=null,editandoVentaId=null,darkMode=false,currentCamCasoId=null,currentPrecioCasoId=null,camStream=null,capturedPhoto=null,businessLogo=null,modelos=[],ncFotos=[],businessName='JJ Electronic Repair',businessTel='',businessDir='';
+let clients=[],casos=[],inventario=[],ventas=[],creditos=[],carrito=[],currentVentaId=null,editandoVentaId=null,darkMode=false,currentCamCasoId=null,currentPrecioCasoId=null,camStream=null,capturedPhoto=null,businessLogo=null,modelos=[],ncFotos=[],businessName='JJ Electronic Repair',businessTel='',businessDir='';
 function uid(){return 'x'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)}
 
 async function loadData(){
@@ -1804,6 +1875,7 @@ async function loadData(){
   inventario=await dbGetAll('inventario');
   if(!inventario.length) await seedInventario();
   try{ ventas=await dbGetAll('ventas'); }catch(e){ console.error('No se pudo cargar ventas (revisa reglas de Firestore para jjrepair_ventas):',e); ventas=[]; }
+  try{ creditos=await dbGetAll('creditos'); }catch(e){ console.error('No se pudo cargar créditos (revisa reglas de Firestore para jjrepair_creditos):',e); creditos=[]; }
   const dm=await dbGet('config','darkMode');
   if(dm&&dm.value) applyDark(true);
   const lg=await dbGet('config','businessLogo');
@@ -2035,6 +2107,14 @@ async function toggleDark(){
 
 // ── Helpers ────────────────────────────────────────────────────
 function cn(id){const c=clients.find(x=>x.id===id);return c?c.nombre:'—'}
+function clienteGasto(id){
+  const gCasos=casos.filter(x=>x.cid===id).reduce((s,c)=>s+Number(c.precio||0),0);
+  const gVentas=ventas.filter(v=>v.cid===id).reduce((s,v)=>s+Number(v.total||0),0);
+  return {casos:gCasos,ventas:gVentas,total:gCasos+gVentas};
+}
+function clienteCredito(id){
+  return creditos.filter(k=>k.cid===id).reduce((s,k)=>s+Number(k.monto||0),0);
+}
 function ico(t){return t==='celular'?'📱':t==='laptop'?'💻':t==='computadora'?'🖥️':t==='consola'?'🎮':'🔌'}
 function bEst(e){
   const m={'recibido':'er','en proceso':'ep','espera pieza':'epi','espera desbloqueo':'edb','listo':'el','entregado':'ee'};
@@ -2150,6 +2230,7 @@ function renderClientes(){
   if(isMobile){
     el.innerHTML=list.map(c=>{
       const n=casos.filter(k=>k.cid===c.id).length;
+      const g=clienteGasto(c.id);
       const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       return`<div class="cli-card">
         <div class="cli-card-top">
@@ -2160,6 +2241,7 @@ function renderClientes(){
           </div>
           <span class="eb ep" title="Casos">${n}</span>
         </div>
+        <div class="cli-card-gasto">💰 Gastado: <strong>$${g.total.toFixed(2)}</strong></div>
         <div class="cli-card-actions">
           <button class="xb" onclick="histCliente('${c.id}')">📋 Historial</button>
           <button class="xb" onclick="editarCliente('${c.id}')">✏️ Editar</button>
@@ -2168,11 +2250,12 @@ function renderClientes(){
       </div>`;
     }).join('');
   } else {
-    el.innerHTML=`<table class="tbl"><thead><tr><th style="width:42px"></th><th>Nombre</th><th style="width:110px">Teléfono</th><th class="col-email">Email</th><th style="width:50px">Casos</th><th style="width:96px">Acciones</th></tr></thead><tbody>`+
+    el.innerHTML=`<table class="tbl"><thead><tr><th style="width:42px"></th><th>Nombre</th><th style="width:100px">Teléfono</th><th class="col-email">Email</th><th style="width:50px">Casos</th><th style="width:85px">Gastado</th><th style="width:96px">Acciones</th></tr></thead><tbody>`+
     list.map(c=>{
       const n=casos.filter(k=>k.cid===c.id).length;
+      const g=clienteGasto(c.id);
       const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td class="col-email" style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${n}</span></td><td class="ab-cell"><div class="ab"><button class="xb" onclick="histCliente('${c.id}')" title="Historial">📋</button><button class="xb" onclick="editarCliente('${c.id}')" title="Editar">✏️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')" title="Eliminar">🗑</button></div></td></tr>`;
+      return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td class="col-email" style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${n}</span></td><td style="font-size:12px;font-weight:600;color:#2C6E1A">$${g.total.toFixed(2)}</td><td class="ab-cell"><div class="ab"><button class="xb" onclick="histCliente('${c.id}')" title="Historial">📋</button><button class="xb" onclick="editarCliente('${c.id}')" title="Editar">✏️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')" title="Eliminar">🗑</button></div></td></tr>`;
     }).join('')+'</tbody></table>';
   }
   applyRolePermissions();
@@ -3283,18 +3366,42 @@ function enviarReciboWA(){
 function histCliente(id){
   const cl=clients.find(x=>x.id===id);
   const ks=casos.filter(x=>x.cid===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const vs=ventas.filter(v=>v.cid===id).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  const g=clienteGasto(id);
   const ini=cl.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  // Combinamos reparaciones y ventas en una sola línea de tiempo
+  const tx=[
+    ...ks.map(c=>({tipo:'rep',fecha:c.fecha,label:`${ico(c.tipo)} ${c.modelo}`,sub:c.prob,monto:Number(c.precio||0),estado:bEst(c.estado),pago:bPago(c.pago),ref:c})),
+    ...vs.map(v=>({tipo:'venta',fecha:v.fecha.slice(0,10),label:`🛒 Venta`,sub:v.items.map(it=>`${it.cantidad}x ${it.nombre}`).join(', '),monto:Number(v.total||0),estado:null,pago:v.metodo?fmtMetodo(v.metodo):'—',ref:v}))
+  ].sort((a,b)=>b.fecha.localeCompare(a.fecha));
   go('detalle');
   document.getElementById('detalle-body').innerHTML=`<div class="panel">
     <div class="pcard"><div class="phead">📋 Historial — ${cl.nombre}</div>
       <div style="display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid rgba(0,0,0,.08)">
         <div class="avt">${ini}</div>
         <div><div style="font-size:14px;font-weight:600">${cl.nombre}</div>
-        <div style="font-size:12px;opacity:.7">${cl.tel}${cl.email?' · '+cl.email:''} · ${ks.length} caso${ks.length!==1?'s':''}</div></div>
+        <div style="font-size:12px;opacity:.7">${cl.tel}${cl.email?' · '+cl.email:''}</div></div>
       </div>
-      ${ks.length?`<table class="tbl"><thead><tr><th style="width:140px">Equipo</th><th>Problema</th><th style="width:80px">Fecha</th><th style="width:90px">Estado</th><th style="width:80px">Pago</th><th style="width:70px">Precio</th><th style="width:80px">Acc.</th></tr></thead><tbody>`+
-      ks.map(c=>`<tr><td><span>${ico(c.tipo)}</span> <strong style="font-size:12px">${c.modelo}</strong></td><td style="font-size:11px;opacity:.7">${c.prob}</td><td style="font-size:11px;opacity:.7">${fmtD(c.fecha)}</td><td>${bEst(c.estado)}</td><td>${bPago(c.pago)}</td><td style="font-size:13px;font-weight:600">$${Number(c.precio).toFixed(2)}</td><td><div class="ab"><button class="xb" onclick="verDetalle('${c.id}')">👁</button><button class="xb g" onclick="showReceipt('${c.id}')">🧾</button></div></td></tr>`).join('')+
-      '</tbody></table>':'<div class="empty"><span class="ei">📋</span>Sin casos</div>'}
+      <div class="gasto-resumen">
+        <div class="gasto-total"><span>💰 Total gastado</span><strong>$${g.total.toFixed(2)}</strong></div>
+        <div class="gasto-split">
+          <div><span>🔧 Reparaciones</span><strong>$${g.casos.toFixed(2)}</strong><small>${ks.length} caso${ks.length!==1?'s':''}</small></div>
+          <div><span>🛒 Ventas</span><strong>$${g.ventas.toFixed(2)}</strong><small>${vs.length} venta${vs.length!==1?'s':''}</small></div>
+        </div>
+      </div>
+      ${tx.length?(isMobileView()?
+        tx.map(t=>`<div class="tx-card">
+          <div class="tx-card-top"><span>${t.label}</span><strong>$${t.monto.toFixed(2)}</strong></div>
+          <div class="tx-card-sub">${t.sub||''}</div>
+          <div class="tx-card-bottom"><span>📅 ${fmtD(t.fecha)}</span>${t.estado?t.estado:''} ${t.pago}
+            ${t.tipo==='rep'?`<button class="xb" style="margin-left:auto" onclick="verDetalle('${t.ref.id}')">👁 Ver</button>`:`<button class="xb" style="margin-left:auto" onclick="showVentaReceipt('${t.ref.id}')">🧾 Ver</button>`}
+          </div>
+        </div>`).join('')
+        :
+        `<table class="tbl"><thead><tr><th style="width:80px">Fecha</th><th style="width:60px">Tipo</th><th>Detalle</th><th style="width:90px">Estado/Pago</th><th style="width:70px">Monto</th><th style="width:60px">Acc.</th></tr></thead><tbody>`+
+        tx.map(t=>`<tr><td style="font-size:11px;opacity:.7">${fmtD(t.fecha)}</td><td style="font-size:12px">${t.tipo==='rep'?'🔧':'🛒'}</td><td style="font-size:12px">${t.label}<br><span style="font-size:11px;opacity:.6">${t.sub||''}</span></td><td>${t.estado?t.estado:''} ${t.pago}</td><td style="font-size:13px;font-weight:600">$${t.monto.toFixed(2)}</td><td>${t.tipo==='rep'?`<button class="xb" onclick="verDetalle('${t.ref.id}')">👁</button>`:`<button class="xb" onclick="showVentaReceipt('${t.ref.id}')">🧾</button>`}</td></tr>`).join('')+
+        '</tbody></table>')
+      :'<div class="empty"><span class="ei">📋</span>Sin transacciones</div>'}
     </div></div>`;
 }
 
