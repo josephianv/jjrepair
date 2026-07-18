@@ -778,6 +778,7 @@ service cloud.firestore {
           <option value="" data-i18n="todas_categorias">Todas las categorías</option>
           <option value="celular" data-i18n="opt_celular">📱 Celular</option>
           <option value="laptop" data-i18n="opt_laptop">💻 Laptop</option>
+          <option value="tablet" data-i18n="opt_tablet">📱 Tablet</option>
           <option value="computadora" data-i18n="opt_computadora">🖥️ Computadora</option>
           <option value="consola" data-i18n="opt_consola">🎮 Consola</option>
           <option value="otro" data-i18n="opt_otro">🔌 Otro</option>
@@ -921,6 +922,7 @@ service cloud.firestore {
                     <option value="" data-i18n="seleccionar_dots">Seleccionar...</option>
                     <option value="celular" data-i18n="opt_celular">📱 Celular</option>
                     <option value="laptop" data-i18n="opt_laptop">💻 Laptop</option>
+                    <option value="tablet" data-i18n="opt_tablet">📱 Tablet</option>
                     <option value="computadora" data-i18n="opt_computadora">🖥️ Computadora</option>
                     <option value="consola" data-i18n="opt_consola">🎮 Consola</option>
                     <option value="otro" data-i18n="opt_otro">🔌 Otro</option>
@@ -1378,6 +1380,7 @@ const i18n = {
     listo:"Listo", entregado:"Entregado",
     todos_pagos:"Todos los pagos", pendiente:"Pendiente", parcial:"Parcial", pagado:"Pagado",
     todas_categorias:"Todas las categorías", opt_celular:"📱 Celular", opt_laptop:"💻 Laptop",
+    opt_tablet:"📱 Tablet",
     opt_computadora:"🖥️ Computadora", opt_consola:"🎮 Consola", opt_otro:"🔌 Otro",
     todas_fechas:"Todas las fechas", hoy:"Hoy", esta_semana:"Esta semana",
     este_mes:"Este mes", mes_anterior:"Mes anterior",
@@ -1417,6 +1420,7 @@ const i18n = {
     listo:"Ready", entregado:"Delivered",
     todos_pagos:"All payments", pendiente:"Pending", parcial:"Partial", pagado:"Paid",
     todas_categorias:"All categories", opt_celular:"📱 Phone", opt_laptop:"💻 Laptop",
+    opt_tablet:"📱 Tablet",
     opt_computadora:"🖥️ Computer", opt_consola:"🎮 Console", opt_otro:"🔌 Other",
     todas_fechas:"All dates", hoy:"Today", esta_semana:"This week",
     este_mes:"This month", mes_anterior:"Last month",
@@ -2119,7 +2123,7 @@ function clienteGasto(id){
 function clienteCredito(id){
   return creditos.filter(k=>k.cid===id).reduce((s,k)=>s+Number(k.monto||0),0);
 }
-function ico(t){return t==='celular'?'📱':t==='laptop'?'💻':t==='computadora'?'🖥️':t==='consola'?'🎮':'🔌'}
+function ico(t){return t==='celular'?'📱':t==='laptop'?'💻':t==='tablet'?'📱':t==='computadora'?'🖥️':t==='consola'?'🎮':'🔌'}
 function bEst(e){
   const m={'recibido':'er','en proceso':'ep','espera pieza':'epi','espera desbloqueo':'edb','listo':'el','entregado':'ee'};
   const k={'recibido':'recibido','en proceso':'en_proceso','espera pieza':'espera_pieza','espera desbloqueo':'espera_desbloqueo','listo':'listo','entregado':'entregado'};
