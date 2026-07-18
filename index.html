@@ -175,8 +175,8 @@ body.dark .cli-card-gasto strong{color:#7dd15a}
 .gasto-total{display:flex;justify-content:space-between;align-items:center;font-size:14px;margin-bottom:10px}
 .gasto-total strong{font-size:20px;color:#2C6E1A}
 body.dark .gasto-total strong{color:#7dd15a}
-.gasto-split{display:flex;gap:10px}
-.gasto-split>div{flex:1;text-align:center;padding:10px 6px;border-radius:10px}
+.gasto-split{display:flex;gap:10px;flex-wrap:wrap}
+.gasto-split>div{flex:1;min-width:100px;text-align:center;padding:10px 6px;border-radius:10px}
 body.light .gasto-split>div{background:#f2f6fb;border:1px solid #dde6f0}
 body.dark .gasto-split>div{background:#242424;border:1px solid #333}
 .gasto-split span{display:block;font-size:11px;opacity:.7;margin-bottom:4px}
@@ -190,6 +190,10 @@ body.dark .tx-card{background:#1e1e1e;border:1px solid #333}
 .tx-card-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-bottom:2px}
 .tx-card-sub{font-size:11px;opacity:.65;margin-bottom:8px}
 .tx-card-bottom{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:11px;opacity:.85}
+.tx-card-credito{border-color:#E0C068!important}
+body.light .tx-card-credito{background:#FFFBEF}
+body.dark .tx-card-credito{background:#2a2412}
+.tx-card-credito .tx-card-top strong{color:#B8860B}
 
 /* REPAIR CARDS (mobile) */
 .caso-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
@@ -2231,6 +2235,7 @@ function renderClientes(){
     el.innerHTML=list.map(c=>{
       const n=casos.filter(k=>k.cid===c.id).length;
       const g=clienteGasto(c.id);
+      const cr=clienteCredito(c.id);
       const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       return`<div class="cli-card">
         <div class="cli-card-top">
@@ -2241,21 +2246,22 @@ function renderClientes(){
           </div>
           <span class="eb ep" title="Casos">${n}</span>
         </div>
-        <div class="cli-card-gasto">💰 Gastado: <strong>$${g.total.toFixed(2)}</strong></div>
+        <div class="cli-card-gasto">💰 Gastado: <strong>$${g.total.toFixed(2)}</strong>${cr>0?` &nbsp;·&nbsp; 🎟️ Crédito: <strong style="color:#B8860B">$${cr.toFixed(2)}</strong>`:''}</div>
         <div class="cli-card-actions">
           <button class="xb" onclick="histCliente('${c.id}')">📋 Historial</button>
           <button class="xb" onclick="editarCliente('${c.id}')">✏️ Editar</button>
+          <button class="xb" onclick="emitirCredito('${c.id}')">🎟️ Crédito</button>
           <button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')">🗑 Eliminar</button>
         </div>
       </div>`;
     }).join('');
   } else {
-    el.innerHTML=`<table class="tbl"><thead><tr><th style="width:42px"></th><th>Nombre</th><th style="width:100px">Teléfono</th><th class="col-email">Email</th><th style="width:50px">Casos</th><th style="width:85px">Gastado</th><th style="width:96px">Acciones</th></tr></thead><tbody>`+
+    el.innerHTML=`<table class="tbl"><thead><tr><th style="width:42px"></th><th>Nombre</th><th style="width:100px">Teléfono</th><th class="col-email">Email</th><th style="width:50px">Casos</th><th style="width:85px">Gastado</th><th style="width:130px">Acciones</th></tr></thead><tbody>`+
     list.map(c=>{
       const n=casos.filter(k=>k.cid===c.id).length;
       const g=clienteGasto(c.id);
       const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td class="col-email" style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${n}</span></td><td style="font-size:12px;font-weight:600;color:#2C6E1A">$${g.total.toFixed(2)}</td><td class="ab-cell"><div class="ab"><button class="xb" onclick="histCliente('${c.id}')" title="Historial">📋</button><button class="xb" onclick="editarCliente('${c.id}')" title="Editar">✏️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')" title="Eliminar">🗑</button></div></td></tr>`;
+      return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td class="col-email" style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${n}</span></td><td style="font-size:12px;font-weight:600;color:#2C6E1A">$${g.total.toFixed(2)}</td><td class="ab-cell"><div class="ab"><button class="xb" onclick="histCliente('${c.id}')" title="Historial">📋</button><button class="xb" onclick="editarCliente('${c.id}')" title="Editar">✏️</button><button class="xb" onclick="emitirCredito('${c.id}')" title="Emitir crédito">🎟️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')" title="Eliminar">🗑</button></div></td></tr>`;
     }).join('')+'</tbody></table>';
   }
   applyRolePermissions();
@@ -2795,6 +2801,88 @@ function enviarVentaWA(){
   const url=tel?`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`;
   window.open(url,'_blank');
 }
+
+// ── CRÉDITO EN TIENDA ──────────────────────────────────────────
+let creditoCliId=null;
+function emitirCredito(cid){
+  const cl=clients.find(x=>x.id===cid);if(!cl)return;
+  creditoCliId=cid;
+  const ini=cl.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
+  document.getElementById('credito-cli-avt').textContent=ini;
+  document.getElementById('credito-cli-nombre').textContent=cl.nombre;
+  document.getElementById('credito-cli-balance').textContent='$'+clienteCredito(cid).toFixed(2);
+  document.getElementById('credito-monto').value='';
+  document.getElementById('credito-motivo').value='Devolución de producto';
+  document.getElementById('credito-motivo-otro').style.display='none';
+  document.getElementById('credito-motivo-libre').value='';
+  // Referencias: ventas y reparaciones de este cliente, para vincular la devolución
+  const ks=casos.filter(x=>x.cid===cid).sort((a,b)=>b.fecha.localeCompare(a.fecha));
+  const vs=ventas.filter(v=>v.cid===cid).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  const sel=document.getElementById('credito-ref');
+  sel.innerHTML='<option value="">— Sin referencia —</option>'+
+    ks.map(c=>`<option value="rep:${c.id}">🔧 ${fmtD(c.fecha)} — ${c.modelo} ($${Number(c.precio).toFixed(2)})</option>`).join('')+
+    vs.map(v=>`<option value="venta:${v.id}">🛒 ${fmtD(v.fecha.slice(0,10))} — Venta ($${Number(v.total).toFixed(2)})</option>`).join('');
+  openModal('modal-credito');
+}
+async function guardarCredito(){
+  const monto=parseFloat(document.getElementById('credito-monto').value);
+  if(!monto||monto<=0){ alert('Ingresa un monto de crédito válido.'); return; }
+  let motivo=document.getElementById('credito-motivo').value;
+  if(motivo==='Otro'){
+    const libre=document.getElementById('credito-motivo-libre').value.trim();
+    motivo=libre||'Otro';
+  }
+  const refVal=document.getElementById('credito-ref').value;
+  const [refTipo,refId]=refVal?refVal.split(':'):[null,null];
+  const credito={id:uid(),cid:creditoCliId,monto,motivo,fecha:new Date().toISOString(),refTipo,refId};
+  try{ await dbPut('creditos',credito); }catch(e){ console.error('No se pudo guardar el crédito (revisa reglas de Firestore para jjrepair_creditos):',e); }
+  creditos.push(credito);
+  closeModal('modal-credito');
+  showCreditoReceipt(credito.id);
+  if(document.getElementById('screen-clientes')?.classList.contains('active')) renderClientes();
+}
+function showCreditoReceipt(id){
+  currentCreditoId=id;
+  const k=creditos.find(x=>x.id===id);if(!k)return;
+  const cl=clients.find(x=>x.id===k.cid);
+  const fecha=new Date(k.fecha).toLocaleString('es-PR');
+  document.getElementById('receipt-credito-content').innerHTML=`
+    <div class="receipt">
+      ${businessLogo?`<div style="text-align:center;margin-bottom:6px"><img src="${businessLogo}" style="max-height:50px;max-width:160px"></div>`:''}
+      <div class="r-title">${(businessName||'JJ Electronic Repair').toUpperCase()}</div>
+      ${businessTel?`<div class="r-sub">Tel: ${businessTel}</div>`:''}
+      ${businessDir?`<div class="r-sub">${businessDir}</div>`:''}
+      <div class="r-sub">${fecha}</div>
+      <hr class="r-sep">
+      <div class="r-row"><span>Cliente:</span><span><strong>${cl?cl.nombre:'—'}</strong></span></div>
+      ${cl&&cl.tel?`<div class="r-row"><span>Tel:</span><span>${cl.tel}</span></div>`:''}
+      <hr class="r-sep">
+      <div class="r-row"><span>Motivo:</span><span>${k.motivo}</span></div>
+      <div class="r-total"><span>CRÉDITO:</span><span>$${Number(k.monto).toFixed(2)}</span></div>
+      <hr class="r-sep">
+      <div style="font-size:11px;opacity:.75;text-align:center">Este crédito queda disponible en la cuenta del cliente para usarse en compras o reparaciones futuras.</div>
+      <div class="r-foot">${businessName||'JJ Electronic Repair'}</div>
+    </div>`;
+  openModal('modal-rec-credito');
+}
+function enviarCreditoWA(){
+  const k=creditos.find(x=>x.id===currentCreditoId);if(!k)return;
+  const cl=clients.find(x=>x.id===k.cid);
+  const fecha=new Date(k.fecha).toLocaleString('es-PR');
+  const linea='─────────────────────';
+  let msg=`🎟️ *RECIBO DE CRÉDITO — ${(businessName||'JJ Electronic Repair').toUpperCase()}*\n`;
+  if(businessTel) msg+=`📞 ${businessTel}\n`;
+  msg+=`📅 ${fecha}\n${linea}\n`;
+  msg+=`👤 *Cliente:* ${cl?cl.nombre:'—'}\n`;
+  msg+=`📝 *Motivo:* ${k.motivo}\n${linea}\n`;
+  msg+=`🎟️ *CRÉDITO: $${Number(k.monto).toFixed(2)}*\n${linea}\n`;
+  msg+=`Este crédito queda disponible para usarse en compras o reparaciones futuras.`;
+  let tel=(cl&&cl.tel||'').replace(/\D/g,'');
+  if(tel && tel.length===10) tel='1'+tel;
+  const url=tel?`https://wa.me/${tel}?text=${encodeURIComponent(msg)}`:`https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url,'_blank');
+}
+let currentCreditoId=null;
 function openModal(id){document.getElementById(id).classList.remove('hide')}
 function closeModal(id){document.getElementById(id).classList.add('hide')}
 
@@ -3367,39 +3455,44 @@ function histCliente(id){
   const cl=clients.find(x=>x.id===id);
   const ks=casos.filter(x=>x.cid===id).sort((a,b)=>b.fecha.localeCompare(a.fecha));
   const vs=ventas.filter(v=>v.cid===id).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
+  const kr=creditos.filter(k=>k.cid===id).sort((a,b)=>new Date(b.fecha)-new Date(a.fecha));
   const g=clienteGasto(id);
+  const saldoCredito=clienteCredito(id);
   const ini=cl.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-  // Combinamos reparaciones y ventas en una sola línea de tiempo
+  // Combinamos reparaciones, ventas y créditos en una sola línea de tiempo
   const tx=[
     ...ks.map(c=>({tipo:'rep',fecha:c.fecha,label:`${ico(c.tipo)} ${c.modelo}`,sub:c.prob,monto:Number(c.precio||0),estado:bEst(c.estado),pago:bPago(c.pago),ref:c})),
-    ...vs.map(v=>({tipo:'venta',fecha:v.fecha.slice(0,10),label:`🛒 Venta`,sub:v.items.map(it=>`${it.cantidad}x ${it.nombre}`).join(', '),monto:Number(v.total||0),estado:null,pago:v.metodo?fmtMetodo(v.metodo):'—',ref:v}))
+    ...vs.map(v=>({tipo:'venta',fecha:v.fecha.slice(0,10),label:`🛒 Venta`,sub:v.items.map(it=>`${it.cantidad}x ${it.nombre}`).join(', '),monto:Number(v.total||0),estado:null,pago:v.metodo?fmtMetodo(v.metodo):'—',ref:v})),
+    ...kr.map(k=>({tipo:'credito',fecha:k.fecha.slice(0,10),label:`🎟️ Crédito emitido`,sub:k.motivo,monto:Number(k.monto||0),estado:null,pago:'',ref:k}))
   ].sort((a,b)=>b.fecha.localeCompare(a.fecha));
   go('detalle');
   document.getElementById('detalle-body').innerHTML=`<div class="panel">
     <div class="pcard"><div class="phead">📋 Historial — ${cl.nombre}</div>
       <div style="display:flex;align-items:center;gap:10px;padding:12px;border-bottom:1px solid rgba(0,0,0,.08)">
         <div class="avt">${ini}</div>
-        <div><div style="font-size:14px;font-weight:600">${cl.nombre}</div>
+        <div style="flex:1"><div style="font-size:14px;font-weight:600">${cl.nombre}</div>
         <div style="font-size:12px;opacity:.7">${cl.tel}${cl.email?' · '+cl.email:''}</div></div>
+        <button class="xb" onclick="emitirCredito('${cl.id}')">🎟️ Emitir crédito</button>
       </div>
       <div class="gasto-resumen">
         <div class="gasto-total"><span>💰 Total gastado</span><strong>$${g.total.toFixed(2)}</strong></div>
         <div class="gasto-split">
           <div><span>🔧 Reparaciones</span><strong>$${g.casos.toFixed(2)}</strong><small>${ks.length} caso${ks.length!==1?'s':''}</small></div>
           <div><span>🛒 Ventas</span><strong>$${g.ventas.toFixed(2)}</strong><small>${vs.length} venta${vs.length!==1?'s':''}</small></div>
+          <div><span>🎟️ Crédito disponible</span><strong style="color:#B8860B">$${saldoCredito.toFixed(2)}</strong><small>${kr.length} emitido${kr.length!==1?'s':''}</small></div>
         </div>
       </div>
       ${tx.length?(isMobileView()?
-        tx.map(t=>`<div class="tx-card">
-          <div class="tx-card-top"><span>${t.label}</span><strong>$${t.monto.toFixed(2)}</strong></div>
+        tx.map(t=>`<div class="tx-card${t.tipo==='credito'?' tx-card-credito':''}">
+          <div class="tx-card-top"><span>${t.label}</span><strong>${t.tipo==='credito'?'+':''}$${t.monto.toFixed(2)}</strong></div>
           <div class="tx-card-sub">${t.sub||''}</div>
           <div class="tx-card-bottom"><span>📅 ${fmtD(t.fecha)}</span>${t.estado?t.estado:''} ${t.pago}
-            ${t.tipo==='rep'?`<button class="xb" style="margin-left:auto" onclick="verDetalle('${t.ref.id}')">👁 Ver</button>`:`<button class="xb" style="margin-left:auto" onclick="showVentaReceipt('${t.ref.id}')">🧾 Ver</button>`}
+            ${t.tipo==='rep'?`<button class="xb" style="margin-left:auto" onclick="verDetalle('${t.ref.id}')">👁 Ver</button>`:t.tipo==='venta'?`<button class="xb" style="margin-left:auto" onclick="showVentaReceipt('${t.ref.id}')">🧾 Ver</button>`:`<button class="xb" style="margin-left:auto" onclick="showCreditoReceipt('${t.ref.id}')">🧾 Ver</button>`}
           </div>
         </div>`).join('')
         :
         `<table class="tbl"><thead><tr><th style="width:80px">Fecha</th><th style="width:60px">Tipo</th><th>Detalle</th><th style="width:90px">Estado/Pago</th><th style="width:70px">Monto</th><th style="width:60px">Acc.</th></tr></thead><tbody>`+
-        tx.map(t=>`<tr><td style="font-size:11px;opacity:.7">${fmtD(t.fecha)}</td><td style="font-size:12px">${t.tipo==='rep'?'🔧':'🛒'}</td><td style="font-size:12px">${t.label}<br><span style="font-size:11px;opacity:.6">${t.sub||''}</span></td><td>${t.estado?t.estado:''} ${t.pago}</td><td style="font-size:13px;font-weight:600">$${t.monto.toFixed(2)}</td><td>${t.tipo==='rep'?`<button class="xb" onclick="verDetalle('${t.ref.id}')">👁</button>`:`<button class="xb" onclick="showVentaReceipt('${t.ref.id}')">🧾</button>`}</td></tr>`).join('')+
+        tx.map(t=>`<tr${t.tipo==='credito'?' style="background:rgba(184,134,11,.06)"':''}><td style="font-size:11px;opacity:.7">${fmtD(t.fecha)}</td><td style="font-size:12px">${t.tipo==='rep'?'🔧':t.tipo==='venta'?'🛒':'🎟️'}</td><td style="font-size:12px">${t.label}<br><span style="font-size:11px;opacity:.6">${t.sub||''}</span></td><td>${t.estado?t.estado:''} ${t.pago}</td><td style="font-size:13px;font-weight:600">${t.tipo==='credito'?'+':''}$${t.monto.toFixed(2)}</td><td>${t.tipo==='rep'?`<button class="xb" onclick="verDetalle('${t.ref.id}')">👁</button>`:t.tipo==='venta'?`<button class="xb" onclick="showVentaReceipt('${t.ref.id}')">🧾</button>`:`<button class="xb" onclick="showCreditoReceipt('${t.ref.id}')">🧾</button>`}</td></tr>`).join('')+
         '</tbody></table>')
       :'<div class="empty"><span class="ei">📋</span>Sin transacciones</div>'}
     </div></div>`;
