@@ -1,7 +1,7 @@
 // JJ Electronic Repair — Service Worker
 // Sube CACHE_VERSION cada vez que publiques cambios importantes
 // para forzar que los usuarios reciban la nueva versión.
-const CACHE_VERSION = 'jj-repair-v8';
+const CACHE_VERSION = 'jj-repair-v9';
 const CORE_ASSETS = [
   './',
   './index.html',

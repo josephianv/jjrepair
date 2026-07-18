@@ -863,8 +863,13 @@ service cloud.firestore {
           <div class="pcard">
             <div class="phead">👤 Cliente (opcional)</div>
             <div style="padding:10px 12px">
+              <div class="fg"><label>Teléfono <span style="font-weight:400;opacity:.7">(escribe para buscar clientes guardados)</span></label>
+                <input type="text" id="venta-cli-tel" list="venta-cli-tel-list" placeholder="787-000-0000" oninput="buscarClienteVentaPorTel(this.value)">
+                <datalist id="venta-cli-tel-list"></datalist>
+              </div>
               <div class="fg"><label>Nombre</label><input type="text" id="venta-cli-nom" placeholder="Cliente walk-in"></div>
-              <div class="fg"><label>Teléfono (para WhatsApp)</label><input type="text" id="venta-cli-tel" placeholder="787-000-0000"></div>
+              <div id="venta-cli-match" style="font-size:12px;color:#2C6E1A;font-weight:600;display:none;margin-top:-6px;margin-bottom:8px">✅ Cliente encontrado — se vinculará automáticamente</div>
+              <input type="hidden" id="venta-cli-id" value="">
             </div>
           </div>
           <div class="pcard">
@@ -2453,8 +2458,24 @@ async function ajustarStock(id,delta){
 function renderVentaScreen(){
   const dl=document.getElementById('venta-predict');
   if(dl) dl.innerHTML=inventario.map(it=>`<option value="${(it.nombre+' — '+(it.sku||it.id)).replace(/"/g,'&quot;')}">${it.stock} en stock · $${Number(it.precio).toFixed(2)}</option>`).join('');
+  const cdl=document.getElementById('venta-cli-tel-list');
+  if(cdl) cdl.innerHTML=clients.map(c=>`<option value="${(c.tel||'').replace(/"/g,'&quot;')}">${c.nombre.replace(/</g,'&lt;')}</option>`).join('');
   renderCarrito();
   renderVentasHist();
+}
+function buscarClienteVentaPorTel(val){
+  const norm=(val||'').replace(/\D/g,'');
+  const match=norm.length>=7?clients.find(c=>(c.tel||'').replace(/\D/g,'')===norm):null;
+  const badge=document.getElementById('venta-cli-match');
+  const idField=document.getElementById('venta-cli-id');
+  if(match){
+    document.getElementById('venta-cli-nom').value=match.nombre;
+    idField.value=match.id;
+    badge.style.display='block';
+  } else {
+    idField.value='';
+    badge.style.display='none';
+  }
 }
 function findInvItem(raw){
   let item=null;
@@ -2557,6 +2578,8 @@ function editarVenta(id){
   carrito=v.items.map(it=>({...it}));
   document.getElementById('venta-cli-nom').value=v.cliente==='Cliente walk-in'?'':v.cliente;
   document.getElementById('venta-cli-tel').value=v.tel||'';
+  document.getElementById('venta-cli-id').value=v.cid||'';
+  document.getElementById('venta-cli-match').style.display=v.cid?'block':'none';
   document.getElementById('venta-metodo').value=v.metodo||'cash';
   document.getElementById('venta-ivu').checked=!!v.ivu;
   document.getElementById('venta-edit-banner').style.display='flex';
@@ -2569,6 +2592,8 @@ function cancelarEdicionVenta(){
   carrito=[];
   document.getElementById('venta-cli-nom').value='';
   document.getElementById('venta-cli-tel').value='';
+  document.getElementById('venta-cli-id').value='';
+  document.getElementById('venta-cli-match').style.display='none';
   document.getElementById('venta-edit-banner').style.display='none';
   document.getElementById('venta-cobrar-btn').textContent='✅ Cobrar y generar recibo';
   renderCarrito();
@@ -2648,10 +2673,15 @@ async function finalizarVenta(){
   const cliTel=document.getElementById('venta-cli-tel').value.trim();
   const cliNom=cliNomRaw||'Cliente walk-in';
   let ventaCid=esEdicion?(ventaOriginal.cid||null):null;
-  // Si escribió un nombre que no coincide con ningún cliente ya guardado,
-  // preguntamos si quiere agregarlo a la base de datos de clientes.
-  if(cliNomRaw && (!esEdicion || cliNomRaw.toLowerCase()!==(ventaOriginal.cliente||'').toLowerCase())){
-    const existente=clients.find(c=>c.nombre.trim().toLowerCase()===cliNomRaw.toLowerCase());
+  const cliIdSeleccionado=document.getElementById('venta-cli-id').value;
+  if(cliIdSeleccionado){
+    // El cliente fue elegido explícitamente buscando por teléfono
+    ventaCid=cliIdSeleccionado;
+  } else if(cliNomRaw && (!esEdicion || cliNomRaw.toLowerCase()!==(ventaOriginal.cliente||'').toLowerCase())){
+    // Buscamos primero por teléfono (más confiable) y si no, por nombre exacto
+    const telNorm=cliTel.replace(/\D/g,'');
+    const existente=(telNorm.length>=7?clients.find(c=>(c.tel||'').replace(/\D/g,'')===telNorm):null)
+      ||clients.find(c=>c.nombre.trim().toLowerCase()===cliNomRaw.toLowerCase());
     if(existente){
       ventaCid=existente.id;
     } else if(confirm(`¿Guardar a "${cliNomRaw}" como cliente nuevo en la base de datos?`)){
@@ -2709,6 +2739,8 @@ async function finalizarVenta(){
   carrito=[];
   document.getElementById('venta-cli-nom').value='';
   document.getElementById('venta-cli-tel').value='';
+  document.getElementById('venta-cli-id').value='';
+  document.getElementById('venta-cli-match').style.display='none';
   document.getElementById('venta-edit-banner').style.display='none';
   document.getElementById('venta-cobrar-btn').textContent='✅ Cobrar y generar recibo';
   renderCarrito();renderVentasHist();updateBadges();
