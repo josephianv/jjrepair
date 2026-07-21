@@ -65,7 +65,7 @@ body.dark .fg input:focus,body.dark .fg select:focus{border-color:#4a90d9;box-sh
 /* APP SHELL */
 .app{display:flex;flex-direction:column;min-height:100vh}
 .topbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:44px;flex-shrink:0}
-body.light .topbar{background:linear-gradient(135deg,#0f2840,#143352);border-bottom:2px solid #0a1e30}
+body.light .topbar{background:linear-gradient(135deg,#0f2840,#143352);border-bottom:2px solid #0a1e30;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 body.dark .topbar{background:#1a1a1a;border-bottom:2px solid #000}
 .brand{display:flex;align-items:center;gap:10px}
 .brand-name{color:#fff;font-size:14px;font-weight:600;letter-spacing:.2px}
@@ -90,7 +90,16 @@ body.dark .mnu.act{background:#2a5a96;color:#fff}
 .main{flex:1;overflow-y:auto}
 body.light .main{background:#f0f4f8}
 body.dark .main{background:#181818}
-.screen{display:none}.screen.active{display:block}
+.screen{display:none}.screen.active{display:block;animation:screenIn .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes screenIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.screen.active{animation:none}}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:9px;height:9px}
+::-webkit-scrollbar-track{background:transparent}
+body.light ::-webkit-scrollbar-thumb{background:#c3d2e3;border-radius:5px}
+body.light ::-webkit-scrollbar-thumb:hover{background:#a3b9d3}
+body.dark ::-webkit-scrollbar-thumb{background:#3a3a3a;border-radius:5px}
+body.dark ::-webkit-scrollbar-thumb:hover{background:#4a4a4a}
 
 /* SECTION BAR */
 .sec-bar{padding:8px 16px;display:flex;align-items:center;justify-content:space-between}
@@ -123,11 +132,11 @@ body.dark .sbar select{border:1px solid #444;color:#e0e0e0;background:#2a2a2a}
 .sbar select:focus{border-color:#185FA5}
 
 /* PANEL CARD */
-.panel{padding:14px}
-.pcard{border-radius:10px;overflow:hidden;margin-bottom:14px;transition:box-shadow .2s}
-body.light .pcard{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
+.panel{padding:16px}
+.pcard{border-radius:14px;overflow:hidden;margin-bottom:16px;transition:box-shadow .2s}
+body.light .pcard{background:#fff;border:1px solid #dde6f0;box-shadow:0 2px 8px rgba(15,40,64,.05)}
 body.dark .pcard{background:#1e1e1e;border:1px solid #333}
-.phead{padding:10px 14px;color:#fff;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;letter-spacing:.2px}
+.phead{padding:12px 16px;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;letter-spacing:.2px}
 body.light .phead{background:linear-gradient(135deg,#1e4a7a,#185FA5)}
 body.dark .phead{background:#0d2137}
 
@@ -144,18 +153,21 @@ body.light .tbl tr:hover td{background:#f5f8fc}
 body.dark .tbl tr:hover td{background:#252525}
 .ab{display:flex;gap:5px;flex-wrap:wrap}
 .tbl td.ab-cell{overflow:visible;white-space:normal}
-.xb{padding:5px 9px;border-radius:6px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;transition:transform .1s,opacity .1s;font-weight:500}
-body.light .xb{border:1px solid #ccd8e8;background:#fff;color:#1a3a5c}
+.xb{padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;transition:transform .12s cubic-bezier(.2,.8,.2,1),opacity .12s,box-shadow .12s,background .12s;font-weight:600}
+body.light .xb{border:1px solid #d5e0ec;background:#fff;color:#1a3a5c}
 body.dark .xb{border:1px solid #444;background:#2a2a2a;color:#ccc}
-.xb:hover{opacity:.75;transform:translateY(-1px)}
+body.light .xb:hover{opacity:1;background:#eef4fb;border-color:#b9cde3;transform:translateY(-1px);box-shadow:0 3px 8px rgba(15,40,64,.1)}
+body.dark .xb:hover{opacity:1;background:#333;transform:translateY(-1px)}
 .xb:active{transform:translateY(0)}
 .xb.d{color:#A32D2D!important;border-color:#F7C1C1!important}
 .xb.g{color:#27500A!important;border-color:#C0DD97!important}
 body.dark .xb.d{color:#ff6b6b!important;border-color:#7a2020!important}
 body.dark .xb.g{color:#7dbf4e!important;border-color:#3a6020!important}
+body.light .xb.d:hover{background:#FCEBEB}
+body.light .xb.g:hover{background:#EAF3DE}
 
 /* CLIENT CARDS (mobile) */
-.cli-card{border-radius:12px;padding:12px 14px;margin-bottom:10px;transition:box-shadow .15s}
+.cli-card{border-radius:14px;padding:14px 16px;margin-bottom:12px;transition:box-shadow .15s}
 body.light .cli-card{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
 body.dark .cli-card{background:#1e1e1e;border:1px solid #333}
 .cli-card-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
@@ -184,7 +196,7 @@ body.dark .gasto-split>div{background:#242424;border:1px solid #333}
 .gasto-split small{display:block;font-size:10px;opacity:.6;margin-top:2px}
 
 /* Combined transaction cards (Historial modal, mobile) */
-.tx-card{border-radius:10px;padding:10px 12px;margin:8px 12px}
+.tx-card{border-radius:12px;padding:12px 14px;margin:10px 14px}
 body.light .tx-card{background:#fff;border:1px solid #ccd8e8}
 body.dark .tx-card{background:#1e1e1e;border:1px solid #333}
 .tx-card-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-bottom:2px}
@@ -196,7 +208,7 @@ body.dark .tx-card-credito{background:#2a2412}
 .tx-card-credito .tx-card-top strong{color:#B8860B}
 
 /* REPAIR CARDS (mobile) */
-.caso-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.caso-card{border-radius:14px;padding:14px 16px;margin-bottom:12px}
 body.light .caso-card{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
 body.dark .caso-card{background:#1e1e1e;border:1px solid #333}
 .caso-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
@@ -210,7 +222,7 @@ body.dark .caso-card-equipo{color:#e0e0e0}
 .caso-card-actions .xb{flex:1;justify-content:center;padding:9px 4px;font-size:11.5px}
 
 /* INVENTORY CARDS (mobile) */
-.inv-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.inv-card{border-radius:14px;padding:14px 16px;margin-bottom:12px}
 body.light .inv-card{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
 body.dark .inv-card{background:#1e1e1e;border:1px solid #333}
 .inv-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
@@ -225,7 +237,7 @@ body.dark .inv-card-name{color:#e0e0e0}
 .inv-card-actions .xb{flex:1;justify-content:center;padding:9px 6px;font-size:12px}
 
 /* CART CARDS (mobile, Vender screen) */
-.cart-card{border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.cart-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
 body.light .cart-card{background:#fff;border:1px solid #ccd8e8}
 body.dark .cart-card{background:#1e1e1e;border:1px solid #333}
 .cart-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
@@ -236,7 +248,7 @@ body.dark .cart-card{background:#1e1e1e;border:1px solid #333}
 .cart-card-bottom strong{margin-left:auto;font-size:13px}
 
 /* SALES HISTORY CARDS (mobile) */
-.venta-card{border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.venta-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
 body.light .venta-card{background:#fff;border:1px solid #ccd8e8}
 body.dark .venta-card{background:#1e1e1e;border:1px solid #333}
 .venta-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}
@@ -252,57 +264,63 @@ body.dark .venta-card{background:#1e1e1e;border:1px solid #333}
 .pp{background:#FCEBEB;color:#791F1F}.pg{background:#EAF3DE;color:#27500A}.pa{background:#FAEEDA;color:#633806}
 
 /* STATS */
-.stats-r{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:12px 14px;border-bottom:1px solid}
+.stats-r{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px}
 body.light .stats-r{background:#e4edf7;border-color:#ccd8e8}
 body.dark .stats-r{background:#161616;border-color:#333}
-.sbox{border-radius:10px;border:1px solid;padding:14px 12px;text-align:center;transition:transform .15s,box-shadow .15s}
-body.light .sbox{background:#fff;border-color:#ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.05)}
+.sbox{border-radius:14px;border:1px solid;padding:16px 12px;text-align:center;transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s;position:relative;overflow:hidden}
+body.light .sbox{background:#fff;border-color:#dbe4ef;box-shadow:0 1px 2px rgba(15,40,64,.04)}
 body.dark .sbox{background:#1e1e1e;border-color:#333}
-.sbox:hover{transform:translateY(-2px)}
-body.light .sbox:hover{box-shadow:0 4px 10px rgba(15,40,64,.1)}
-.sbox .n{font-size:25px;font-weight:700;letter-spacing:-.3px}
-body.light .sbox .n{color:#1a3a5c}
+.sbox:hover{transform:translateY(-3px)}
+body.light .sbox:hover{box-shadow:0 10px 24px -8px rgba(15,40,64,.18);border-color:#b9cde3}
+body.dark .sbox:hover{box-shadow:0 10px 24px -8px rgba(0,0,0,.5)}
+.sbox .n{font-size:26px;font-weight:800;letter-spacing:-.5px}
+body.light .sbox .n{color:#123b63}
 body.dark .sbox .n{color:#e0e0e0}
-.sbox .l{font-size:11px;margin-top:4px;font-weight:500}
+.sbox .l{font-size:11px;margin-top:5px;font-weight:600;letter-spacing:.2px;opacity:.75}
 body.light .sbox .l{color:#4a6080}
 body.dark .sbox .l{color:#888}
 
 /* HOME TILES */
-.home-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:18px}
-.htile{border-radius:12px;border:1px solid;padding:22px 12px;display:flex;flex-direction:column;align-items:center;gap:10px;cursor:pointer;transition:all .18s}
-body.light .htile{background:#fff;border-color:#d0dcea;box-shadow:0 1px 3px rgba(15,40,64,.05)}
+.home-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:20px}
+.htile{border-radius:16px;border:1px solid;padding:24px 12px;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;transition:transform .2s cubic-bezier(.2,.8,.2,1),box-shadow .2s,border-color .2s,background .2s}
+body.light .htile{background:#fff;border-color:#e2e9f2;box-shadow:0 1px 2px rgba(15,40,64,.04)}
 body.dark .htile{background:#1e1e1e;border-color:#333}
-body.light .htile:hover{background:#e8f0fa;border-color:#85B7EB;box-shadow:0 6px 14px rgba(24,95,165,.15)}
-body.dark .htile:hover{background:#252525;border-color:#555}
-.htile:hover{transform:translateY(-2px)}
-.htile:active{transform:translateY(0)}
+body.light .htile:hover{background:#fff;border-color:#85B7EB;box-shadow:0 14px 28px -10px rgba(24,95,165,.28)}
+body.dark .htile:hover{background:#252525;border-color:#4a90d9;box-shadow:0 14px 28px -10px rgba(0,0,0,.6)}
+.htile:hover{transform:translateY(-4px) scale(1.015)}
+.htile:active{transform:translateY(-1px) scale(1)}
 .htile.htile-venta{border-width:2px}
 body.light .htile.htile-venta{background:#EAF7E4;border-color:#6EBF4A}
 body.dark .htile.htile-venta{background:#16260f;border-color:#4a8a2a}
-body.light .htile.htile-venta:hover{background:#DCF2D2;border-color:#4CA82E}
+body.light .htile.htile-venta:hover{background:#DCF2D2;border-color:#4CA82E;box-shadow:0 14px 28px -10px rgba(76,168,46,.3)}
 body.dark .htile.htile-venta:hover{background:#1c2f13;border-color:#5aa233}
 .htile.htile-venta span{color:#2C6E1A!important}
 body.dark .htile.htile-venta span{color:#7dd15a!important}
-.htile .ticon{font-size:32px}
-.htile span{font-size:12px;font-weight:600;text-align:center}
+.htile .ticon{font-size:26px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;border-radius:50%;transition:transform .2s cubic-bezier(.2,.8,.2,1)}
+body.light .htile .ticon{background:#eef4fb}
+body.dark .htile .ticon{background:#2a2a2a}
+.htile.htile-venta .ticon{background:#DCF2D2}
+body.dark .htile.htile-venta .ticon{background:#20351a}
+.htile:hover .ticon{transform:scale(1.08)}
+.htile span{font-size:12px;font-weight:700;text-align:center;letter-spacing:.1px}
 body.light .htile span{color:#1a3a5c}
 body.dark .htile span{color:#ccc}
 
 /* BUTTONS */
-.btn-b{background:#185FA5;color:#fff;border:none;border-radius:7px;padding:9px 17px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-weight:600;transition:background .15s,transform .1s,box-shadow .15s}
-body.light .btn-b{box-shadow:0 1px 3px rgba(24,95,165,.25)}
-.btn-b:hover{background:#0C447C;transform:translateY(-1px)}
+.btn-b{background:#185FA5;color:#fff;border:none;border-radius:9px;padding:10px 18px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;transition:background .15s,transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .15s}
+body.light .btn-b{box-shadow:0 2px 6px rgba(24,95,165,.3)}
+.btn-b:hover{background:#0C447C;transform:translateY(-1px);box-shadow:0 6px 14px rgba(24,95,165,.35)}
 .btn-b:active{transform:translateY(0)}
-.btn-g{background:#3B6D11;color:#fff;border:none;border-radius:7px;padding:9px 17px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;font-weight:600;transition:background .15s,transform .1s}
-.btn-g:hover{background:#27500A;transform:translateY(-1px)}
+.btn-g{background:#3B6D11;color:#fff;border:none;border-radius:9px;padding:10px 18px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;transition:background .15s,transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .15s}
+.btn-g:hover{background:#27500A;transform:translateY(-1px);box-shadow:0 6px 14px rgba(39,80,10,.3)}
 .btn-g:active{transform:translateY(0)}
-.btn-o{border-radius:7px;padding:9px 15px;font-size:13px;cursor:pointer;font-weight:600;border:1px solid;transition:opacity .15s,transform .1s}
+.btn-o{border-radius:9px;padding:10px 16px;font-size:13px;cursor:pointer;font-weight:600;border:1px solid;transition:opacity .15s,transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .15s}
 body.light .btn-o{background:#fff;color:#1a3a5c;border-color:#ccd8e8}
 body.dark .btn-o{background:#2a2a2a;color:#e0e0e0;border-color:#444}
-.btn-o:hover{opacity:.85;transform:translateY(-1px)}
+.btn-o:hover{opacity:.85;transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.08)}
 .btn-o:active{transform:translateY(0)}
-.btn-red{background:#A32D2D;color:#fff;border:none;border-radius:7px;padding:9px 15px;font-size:13px;cursor:pointer;font-weight:600;transition:background .15s,transform .1s}
-.btn-red:hover{background:#7a1f1f;transform:translateY(-1px)}
+.btn-red{background:#A32D2D;color:#fff;border:none;border-radius:9px;padding:10px 16px;font-size:13px;cursor:pointer;font-weight:600;transition:background .15s,transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .15s}
+.btn-red:hover{background:#7a1f1f;transform:translateY(-1px);box-shadow:0 6px 14px rgba(122,31,31,.3)}
 .btn-red:active{transform:translateY(0)}
 
 /* MODAL */
@@ -331,7 +349,7 @@ body.dark .note-del{color:#85B7EB}
 .note-del:hover{opacity:1}
 
 /* AVATAR */
-.avt{width:32px;height:32px;border-radius:50%;background:#185FA5;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:600;flex-shrink:0}
+.avt{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#2472c4,#144e8c);display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;font-weight:700;flex-shrink:0;box-shadow:0 2px 5px rgba(20,78,140,.35)}
 
 /* DETALLE */
 .det-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px}
@@ -394,10 +412,10 @@ body.light .cfg-body{background:#fff}
 body.dark .cfg-body{background:#1e1e1e}
 
 /* EMPTY */
-.empty{text-align:center;padding:32px}
-body.light .empty{color:#4a6080}
-body.dark .empty{color:#666}
-.empty .ei{font-size:36px;display:block;margin-bottom:10px;opacity:.3}
+.empty{text-align:center;padding:48px 20px;font-size:13px;font-weight:500}
+body.light .empty{color:#5a7290}
+body.dark .empty{color:#777}
+.empty .ei{font-size:44px;display:block;margin-bottom:12px;opacity:.35}
 
 /* CAMERA */
 #camera-video{width:100%;border-radius:6px;max-height:260px;object-fit:cover}
@@ -758,7 +776,7 @@ service cloud.firestore {
         <button class="tbtn" onclick="filterAndGo('pago','pendiente')">💳 <span data-i18n="pago_pendiente">Pago pendiente</span></button>
       </div>
       <div class="sbar no-print">
-        <input type="text" id="q-cas" placeholder="🔍  Buscar #ID, cliente, equipo..." data-i18n-ph="buscar_caso_ph" oninput="renderCasos()">
+        <input type="text" id="q-cas" placeholder="🔍  Buscar #ID, cliente, equipo..." data-i18n-ph="buscar_caso_ph" oninput="renderCasosDeb()">
         <select id="f-est" onchange="renderCasos()" style="width:150px">
           <option value="" data-i18n="todos_estados">Todos los estados</option>
           <option value="recibido" data-i18n="recibido">Recibido</option>
@@ -812,7 +830,7 @@ service cloud.firestore {
         <button class="tbtn" onclick="filterInvStock('sin')">🚫 Sin stock</button>
       </div>
       <div class="sbar no-print">
-        <input type="text" id="q-inv" placeholder="🔍  Buscar por nombre o SKU..." oninput="renderInventario()">
+        <input type="text" id="q-inv" placeholder="🔍  Buscar por nombre o SKU..." oninput="renderInventarioDeb()">
         <select id="f-inv-cat" onchange="renderInventario()" style="width:220px"><option value="">Todas las categorías</option></select>
         <select id="f-inv-stock" onchange="renderInventario()" style="width:150px">
           <option value="">Todos los niveles</option>
@@ -902,7 +920,7 @@ service cloud.firestore {
     <div id="screen-clientes" class="screen">
       <div class="sec-bar no-print"><span class="sec-title" data-i18n="directorio_clientes">👥 Directorio de clientes</span><span class="bc" data-i18n="bc_inicio_clientes">Inicio › Clientes</span></div>
       <div class="toolbar no-print"><button class="tbtn" onclick="openNuevoCliente()">➕ <span data-i18n="nuevo_cliente">Nuevo cliente</span></button></div>
-      <div class="sbar no-print"><input type="text" id="q-cli" placeholder="🔍  Buscar por nombre o teléfono..." data-i18n-ph="buscar_cliente_ph" oninput="renderClientes()"></div>
+      <div class="sbar no-print"><input type="text" id="q-cli" placeholder="🔍  Buscar por nombre o teléfono..." data-i18n-ph="buscar_cliente_ph" oninput="renderClientesDeb()"></div>
       <div class="panel"><div class="pcard" id="clientes-tbl"></div></div>
     </div>
 
@@ -914,7 +932,12 @@ service cloud.firestore {
           <div class="pcard">
             <div class="phead">👤 <span data-i18n="datos_cliente">Datos del cliente</span></div>
             <div style="padding:14px">
-              <div class="fg"><label data-i18n="seleccionar_cliente">Seleccionar cliente *</label><select id="nc-cli"><option value="" data-i18n="seleccionar_opt">— Seleccionar —</option></select></div>
+              <div class="fg"><label data-i18n="seleccionar_cliente">Seleccionar cliente *</label>
+                <input type="text" id="nc-cli-buscar" list="nc-cli-list" placeholder="Buscar por nombre o teléfono..." oninput="buscarClienteNC(this.value)" autocomplete="off">
+                <datalist id="nc-cli-list"></datalist>
+                <input type="hidden" id="nc-cli" value="">
+                <div id="nc-cli-match" style="font-size:12px;color:#2C6E1A;font-weight:600;display:none;margin-top:4px">✅ <span id="nc-cli-match-nombre"></span> seleccionado</div>
+              </div>
               <p style="font-size:11px;color:#888"><span data-i18n="cliente_nuevo_q">¿Cliente nuevo?</span> <a href="#" onclick="openNuevoCliente();return false" style="color:#185FA5" data-i18n="crear_aqui">Crear aquí</a></p>
             </div>
           </div>
@@ -2172,6 +2195,10 @@ function renderCasos(){
   const alerta=(document.getElementById('f-alerta')||{}).value||'';
   const hoy=new Date();
   const hoyStr=hoy.toISOString().slice(0,10);
+  // Mapa de nombres en una sola pasada, en vez de buscar en clients[] por cada caso
+  const nameMap={};
+  clients.forEach(c=>{nameMap[c.id]=c.nombre});
+  const cnFast=id=>nameMap[id]||'—';
   function enRangoFecha(f){
     if(!fechaF)return true;
     if(!f)return false;
@@ -2189,7 +2216,7 @@ function renderCasos(){
     return dias>=7;
   }
   const list=casos.filter(c=>
-    (!q||cn(c.cid).toLowerCase().includes(q)||c.modelo.toLowerCase().includes(q)||c.tipo.toLowerCase().includes(q)||('#'+c.id.slice(-4)).toLowerCase().includes(q))&&
+    (!q||cnFast(c.cid).toLowerCase().includes(q)||c.modelo.toLowerCase().includes(q)||c.tipo.toLowerCase().includes(q)||('#'+c.id.slice(-4)).toLowerCase().includes(q))&&
     (!est||c.estado===est)&&
     (!pago||c.pago===pago)&&
     (!tipo||c.tipo===tipo)&&
@@ -2205,7 +2232,7 @@ function renderCasos(){
         <span class="caso-card-precio">$${Number(c.precio).toFixed(2)}</span>
       </div>
       <div class="caso-card-equipo">${ico(c.tipo)} <strong>${c.modelo}</strong>${sinMovimiento(c)?' <span title="Sin movimiento +7 días">⚠️</span>':''}</div>
-      <div class="caso-card-cliente">👤 ${cn(c.cid)} &nbsp;·&nbsp; 📅 ${fmtD(c.fecha)}</div>
+      <div class="caso-card-cliente">👤 ${cnFast(c.cid)} &nbsp;·&nbsp; 📅 ${fmtD(c.fecha)}</div>
       <div class="caso-card-badges">${bEst(c.estado)} ${bPago(c.pago)}</div>
       <div class="caso-card-actions">
         <button class="xb" onclick="verDetalle('${c.id}')">👁 Ver</button>
@@ -2223,7 +2250,7 @@ function renderCasos(){
   list.map(c=>`<tr>
     <td><span class="caso-num">#${c.id.slice(-4).toUpperCase()}</span></td>
     <td><span style="margin-right:4px">${ico(c.tipo)}</span><strong style="font-size:12px">${c.modelo}</strong>${sinMovimiento(c)?' <span title="Sin movimiento +7 días">⚠️</span>':''}</td>
-    <td style="font-size:12px">${cn(c.cid)}</td>
+    <td style="font-size:12px">${cnFast(c.cid)}</td>
     <td style="font-size:11px;opacity:.7">${fmtD(c.fecha)}</td>
     <td>${bEst(c.estado)}</td><td>${bPago(c.pago)}</td>
     <td style="font-size:13px;font-weight:600">$${Number(c.precio).toFixed(2)}</td>
@@ -2235,16 +2262,28 @@ function renderCasos(){
   applyRolePermissions();
 }
 function renderClientes(){
-  const q=(document.getElementById('q-cli')||{}).value?.toLowerCase()||'';
-  const list=clients.filter(c=>!q||c.nombre.toLowerCase().includes(q)||c.tel.includes(q));
+  const qRaw=(document.getElementById('q-cli')||{}).value||'';
+  const q=qRaw.toLowerCase().trim();
+  const qDigits=qRaw.replace(/\D/g,'');
+  const list=clients.filter(c=>{
+    if(!q) return true;
+    if(c.nombre.toLowerCase().includes(q)) return true;
+    if(qDigits && (c.tel||'').replace(/\D/g,'').includes(qDigits)) return true;
+    return false;
+  });
   const el=document.getElementById('clientes-tbl');
   if(!list.length){el.innerHTML='<div class="empty"><span class="ei">👥</span>Sin clientes</div>';return}
+  // Índice de una sola pasada (en vez de recorrer casos/ventas/creditos por cada cliente)
+  const idx={};
+  const get=id=>idx[id]||(idx[id]={n:0,casos:0,ventas:0,credito:0});
+  casos.forEach(c=>{if(c.cid){const r=get(c.cid);r.n++;r.casos+=Number(c.precio||0)}});
+  ventas.forEach(v=>{if(v.cid) get(v.cid).ventas+=Number(v.total||0)});
+  creditos.forEach(k=>{if(k.cid) get(k.cid).credito+=Number(k.monto||0)});
   const isMobile=isMobileView();
   if(isMobile){
     el.innerHTML=list.map(c=>{
-      const n=casos.filter(k=>k.cid===c.id).length;
-      const g=clienteGasto(c.id);
-      const cr=clienteCredito(c.id);
+      const r=idx[c.id]||{n:0,casos:0,ventas:0,credito:0};
+      const total=r.casos+r.ventas;
       const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
       return`<div class="cli-card">
         <div class="cli-card-top">
@@ -2253,9 +2292,9 @@ function renderClientes(){
             <div class="cli-card-name">${c.nombre}</div>
             <div class="cli-card-sub">📞 ${c.tel}${c.email?' · ✉️ '+c.email:''}</div>
           </div>
-          <span class="eb ep" title="Casos">${n}</span>
+          <span class="eb ep" title="Casos">${r.n}</span>
         </div>
-        <div class="cli-card-gasto">💰 Gastado: <strong>$${g.total.toFixed(2)}</strong>${cr>0?` &nbsp;·&nbsp; 🎟️ Crédito: <strong style="color:#B8860B">$${cr.toFixed(2)}</strong>`:''}</div>
+        <div class="cli-card-gasto">💰 Gastado: <strong>$${total.toFixed(2)}</strong>${r.credito>0?` &nbsp;·&nbsp; 🎟️ Crédito: <strong style="color:#B8860B">$${r.credito.toFixed(2)}</strong>`:''}</div>
         <div class="cli-card-actions">
           <button class="xb" onclick="histCliente('${c.id}')">📋 Historial</button>
           <button class="xb" onclick="editarCliente('${c.id}')">✏️ Editar</button>
@@ -2267,17 +2306,30 @@ function renderClientes(){
   } else {
     el.innerHTML=`<table class="tbl"><thead><tr><th style="width:42px"></th><th>Nombre</th><th style="width:100px">Teléfono</th><th class="col-email">Email</th><th style="width:50px">Casos</th><th style="width:85px">Gastado</th><th style="width:130px">Acciones</th></tr></thead><tbody>`+
     list.map(c=>{
-      const n=casos.filter(k=>k.cid===c.id).length;
-      const g=clienteGasto(c.id);
+      const r=idx[c.id]||{n:0,casos:0,ventas:0,credito:0};
+      const total=r.casos+r.ventas;
       const ini=c.nombre.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase();
-      return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td class="col-email" style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${n}</span></td><td style="font-size:12px;font-weight:600;color:#2C6E1A">$${g.total.toFixed(2)}</td><td class="ab-cell"><div class="ab"><button class="xb" onclick="histCliente('${c.id}')" title="Historial">📋</button><button class="xb" onclick="editarCliente('${c.id}')" title="Editar">✏️</button><button class="xb" onclick="emitirCredito('${c.id}')" title="Emitir crédito">🎟️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')" title="Eliminar">🗑</button></div></td></tr>`;
+      return`<tr><td><div class="avt">${ini}</div></td><td style="font-size:13px;font-weight:500">${c.nombre}</td><td style="font-size:12px">${c.tel}</td><td class="col-email" style="font-size:12px;opacity:.7">${c.email||'—'}</td><td style="text-align:center"><span class="eb ep">${r.n}</span></td><td style="font-size:12px;font-weight:600;color:#2C6E1A">$${total.toFixed(2)}</td><td class="ab-cell"><div class="ab"><button class="xb" onclick="histCliente('${c.id}')" title="Historial">📋</button><button class="xb" onclick="editarCliente('${c.id}')" title="Editar">✏️</button><button class="xb" onclick="emitirCredito('${c.id}')" title="Emitir crédito">🎟️</button><button class="xb d btn-eliminar-admin" onclick="delCliente('${c.id}')" title="Eliminar">🗑</button></div></td></tr>`;
     }).join('')+'</tbody></table>';
   }
   applyRolePermissions();
 }
 function fillSel(){
-  const s=document.getElementById('nc-cli');if(!s)return;
-  s.innerHTML='<option value="">— Seleccionar cliente —</option>'+clients.map(c=>`<option value="${c.id}">${c.nombre}</option>`).join('');
+  const dl=document.getElementById('nc-cli-list');if(!dl)return;
+  dl.innerHTML=clients.map(c=>`<option value="${(c.nombre+' — '+(c.tel||'')).replace(/"/g,'&quot;')}">`).join('');
+}
+function buscarClienteNC(val){
+  const match=clients.find(c=>(c.nombre+' — '+(c.tel||''))===val);
+  const idField=document.getElementById('nc-cli');
+  const badge=document.getElementById('nc-cli-match');
+  if(match){
+    idField.value=match.id;
+    document.getElementById('nc-cli-match-nombre').textContent=match.nombre;
+    badge.style.display='block';
+  } else {
+    idField.value='';
+    badge.style.display='none';
+  }
 }
 
 // ── INVENTARIO ────────────────────────────────────────────────
@@ -2981,7 +3033,7 @@ async function guardarCaso(){
   await addModelo(modelo);
   ncFotos=[];renderNcPhotoGrid();
   ['nc-mod','nc-ser','nc-pw','nc-prob','nc-pre'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
-  document.getElementById('nc-cli').value='';document.getElementById('nc-tipo').value='';document.getElementById('nc-pago').value='pendiente';document.getElementById('nc-tipopago').value='';document.getElementById('nc-tax').checked=false;calcNcTotal();
+  document.getElementById('nc-cli').value='';document.getElementById('nc-cli-buscar').value='';document.getElementById('nc-cli-match').style.display='none';document.getElementById('nc-tipo').value='';document.getElementById('nc-pago').value='pendiente';document.getElementById('nc-tipopago').value='';document.getElementById('nc-tax').checked=false;calcNcTotal();
   updateAll();go('casos');
 }
 async function delCaso(id){
@@ -4220,6 +4272,11 @@ function enviarWA(){
 // ── INIT ──────────────────────────────────────────────────────
 // Re-renderiza vistas de tarjeta al cruzar el punto de quiebre móvil/escritorio
 function isMobileView(){ return window.matchMedia('(max-width:700px)').matches; }
+// Evita re-renderizar toda la lista en cada tecla al buscar (más notorio con listas grandes)
+function debounce(fn,ms){let t;return function(...a){clearTimeout(t);t=setTimeout(()=>fn.apply(this,a),ms)}}
+const renderCasosDeb=debounce(renderCasos,150);
+const renderInventarioDeb=debounce(renderInventario,150);
+const renderClientesDeb=debounce(renderClientes,150);
 let mqLast=isMobileView();
 window.addEventListener('resize',()=>{
   const nowMobile=isMobileView();
