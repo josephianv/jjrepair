@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">
+<title>Seguimiento de reparación · JJ Electronic Repair</title>
+<link rel="icon" href="icons/icon-32.png">
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;background:linear-gradient(135deg,#0f2840,#143352);padding:16px 12px}
+.wrap{max-width:480px;margin:0 auto}
+.top{text-align:center;color:#fff;margin:14px 0 22px}
+.top img{width:56px;height:56px;border-radius:14px;margin-bottom:10px}
+.top h1{font-size:20px;font-weight:700}
+.top p{font-size:13px;color:#9ec2ea;margin-top:4px}
+
+.state{display:none}
+.state.on{display:block}
+
+.loading{text-align:center;padding:60px 20px;color:#fff}
+.spinner{width:44px;height:44px;border:4px solid rgba(255,255,255,.25);border-top:4px solid #fff;border-radius:50%;margin:0 auto 16px;animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.msgcard{background:#fff;border-radius:14px;padding:26px 22px;text-align:center;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+.msgcard .ico{font-size:38px;margin-bottom:10px}
+.msgcard h2{font-size:16px;color:#1a3a5c;margin-bottom:8px}
+.msgcard p{font-size:13px;color:#667;line-height:1.5}
+
+.card{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.25);overflow:hidden;margin-bottom:14px}
+.chead{background:linear-gradient(135deg,#1e4a7a,#185FA5);color:#fff;padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.chead h2{font-size:16px;font-weight:700}
+.chead .sub{font-size:11px;color:#a9cdf0;margin-top:3px}
+.badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35)}
+
+.cbody{padding:16px 18px}
+.row{padding:11px 0;border-bottom:1px solid #eef2f7;display:flex;justify-content:space-between;gap:14px}
+.row:last-child{border-bottom:none}
+.row .l{font-size:11px;font-weight:700;color:#7b8ba3;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;padding-top:2px}
+.row .v{font-size:13.5px;color:#16324f;text-align:right;font-weight:500;line-height:1.4}
+
+.steps{display:flex;justify-content:space-between;margin:14px 0 4px;position:relative}
+.steps:before{content:'';position:absolute;top:11px;left:16px;right:16px;height:2px;background:#e3e9f2;z-index:0}
+.step{flex:1;text-align:center;position:relative;z-index:1}
+.dot{width:24px;height:24px;border-radius:50%;background:#e3e9f2;color:#9aa9bd;display:flex;align-items:center;justify-content:center;margin:0 auto 6px;font-size:11px;font-weight:700;border:3px solid #fff;box-shadow:0 0 0 1px #e3e9f2}
+.step.done .dot{background:#185FA5;color:#fff;box-shadow:0 0 0 1px #185FA5}
+.step.now .dot{background:#25D366;color:#fff;box-shadow:0 0 0 1px #25D366}
+.step .lbl{font-size:9px;color:#7b8ba3;font-weight:600;line-height:1.2}
+.step.done .lbl,.step.now .lbl{color:#16324f}
+
+.notes{display:flex;flex-direction:column;gap:8px}
+.note{background:#f5f8fc;border-left:3px solid #185FA5;border-radius:6px;padding:9px 11px;font-size:12.5px;color:#233;line-height:1.4}
+.note .dt{font-size:10px;color:#93a3b8;margin-top:4px}
+
+.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+.photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;cursor:pointer;background:#f0f4f8}
+
+.price{background:#f5f8fc;border-radius:10px;padding:12px 14px;margin-top:2px}
+.price .pr{display:flex;justify-content:space-between;font-size:12.5px;color:#45536b;margin-bottom:6px}
+.price .pr:last-child{margin-bottom:0;padding-top:8px;border-top:1px solid #dde6f0;font-size:15px;font-weight:700;color:#185FA5}
+
+.actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.btn{padding:13px;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px}
+.btn.wa{background:#25D366;color:#fff;grid-column:span 2}
+.btn.sec{background:#eef4fb;color:#185FA5}
+
+.foot{text-align:center;color:#9ec2ea;font-size:11px;margin:18px 0 6px}
+
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:center;justify-content:center;padding:16px}
+.modal.on{display:flex}
+.modal img{max-width:100%;max-height:90vh;border-radius:8px}
+.modal .x{position:absolute;top:16px;right:16px;background:rgba(255,255,255,.15);color:#fff;border:none;width:38px;height:38px;border-radius:50%;font-size:18px;cursor:pointer}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="top">
+    <h1 id="bizName">🔧 JJ Electronic Repair</h1>
+    <p>Seguimiento de tu reparación</p>
+  </div>
+
+  <div class="state on" id="s-loading">
+    <div class="loading"><div class="spinner"></div><p>Buscando tu reparación…</p></div>
+  </div>
+
+  <div class="state" id="s-notfound">
+    <div class="msgcard"><div class="ico">🔍</div><h2>No encontramos esta reparación</h2>
+      <p>El código no es válido o el enlace expiró. Verifica el código o contacta al taller.</p></div>
+  </div>
+
+  <div class="state" id="s-error">
+    <div class="msgcard"><div class="ico">⚠️</div><h2>Error de conexión</h2>
+      <p>No pudimos conectar con el servidor. Intenta de nuevo en unos minutos.</p></div>
+  </div>
+
+  <div class="state" id="s-content">
+    <div class="card">
+      <div class="chead">
+        <div>
+          <h2 id="c-modelo">—</h2>
+          <div class="sub" id="c-num">—</div>
+        </div>
+        <span class="badge" id="c-badge">—</span>
+      </div>
+      <div class="cbody">
+        <div class="steps" id="c-steps"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cbody">
+        <div class="row"><span class="l">Cliente</span><span class="v" id="c-cliente">—</span></div>
+        <div class="row"><span class="l">Equipo</span><span class="v" id="c-equipo">—</span></div>
+        <div class="row" id="row-serial" style="display:none"><span class="l">Serial</span><span class="v" id="c-serial">—</span></div>
+        <div class="row"><span class="l">Problema</span><span class="v" id="c-prob">—</span></div>
+        <div class="row"><span class="l">Recibido</span><span class="v" id="c-fecha">—</span></div>
+        <div class="row"><span class="l">Pago</span><span class="v" id="c-pago">—</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cbody">
+        <div class="price">
+          <div class="pr" id="pr-base-wrap" style="display:none"><span>Mano de obra</span><span id="pr-base">$0.00</span></div>
+          <div class="pr" id="pr-ivu-wrap" style="display:none"><span>IVU (11.50%)</span><span id="pr-ivu">$0.00</span></div>
+          <div class="pr"><span>Total</span><span id="pr-total">$0.00</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="card-notas" style="display:none">
+      <div class="cbody">
+        <div class="row" style="border:none;padding-bottom:8px"><span class="l">📝 Notas técnicas</span></div>
+        <div class="notes" id="c-notas"></div>
+      </div>
+    </div>
+
+    <div class="card" id="card-fotos" style="display:none">
+      <div class="cbody">
+        <div class="row" style="border:none;padding-bottom:8px"><span class="l">📸 Fotos del equipo</span></div>
+        <div class="photos" id="c-fotos"></div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn sec" onclick="copiarEnlace()">🔗 Copiar enlace</button>
+      <button class="btn sec" onclick="location.reload()">🔄 Actualizar</button>
+      <button class="btn wa" onclick="compartirWA()">💬 Compartir por WhatsApp</button>
+    </div>
+
+    <div class="foot" id="c-foot">JJ Electronic Repair</div>
+  </div>
+</div>
+
+<div class="modal" id="imgModal" onclick="this.classList.remove('on')">
+  <button class="x" onclick="event.stopPropagation();document.getElementById('imgModal').classList.remove('on')">✕</button>
+  <img id="imgModalSrc" src="" alt="Foto">
+</div>
+
+<script>
+const FB_CONFIG_KEY = 'jjrepair_fbconfig';
+
+const ESTADOS = ['recibido','en proceso','espera pieza','espera desbloqueo','listo','entregado'];
+const ESTADO_LABEL = {
+  'recibido':'Recibido','en proceso':'En proceso','espera pieza':'Esperando pieza',
+  'espera desbloqueo':'Esperando desbloqueo','listo':'Listo para recoger','entregado':'Entregado'
+};
+const ESTADO_ICON = {
+  'recibido':'📥','en proceso':'🔧','espera pieza':'📦','espera desbloqueo':'🔓','listo':'✅','entregado':'🎉'
+};
+const PAGO_LABEL = {'pendiente':'Pendiente','parcial':'Pago parcial','pagado':'Pagado ✓'};
+const TIPO_ICON = {celular:'📱',laptop:'💻',tablet:'📱',computadora:'🖥️',consola:'🎮'};
+
+function showState(id){
+  ['s-loading','s-notfound','s-error','s-content'].forEach(s=>{
+    document.getElementById(s).classList.toggle('on', s===id);
+  });
+}
+
+function fmtFecha(f){
+  if(!f) return '—';
+  const[y,m,d]=f.split('-');
+  const meses=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  return `${parseInt(d)} de ${meses[parseInt(m)-1]}, ${y}`;
+}
+
+let CASO=null, CLIENTE=null;
+
+async function init(){
+  try{
+    const params=new URLSearchParams(location.search);
+    const code=params.get('code');
+    if(!code){ showState('s-notfound'); return; }
+
+    const raw=localStorage.getItem(FB_CONFIG_KEY);
+    if(!raw){ showState('s-error'); return; }
+    const cfg=JSON.parse(raw);
+
+    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    const db=firebase.firestore();
+
+    const snap=await db.collection('jjrepair_casos').where('trackingCode','==',code).limit(1).get();
+    if(snap.empty){ showState('s-notfound'); return; }
+
+    CASO=snap.docs[0].data();
+
+    if(CASO.cid){
+      const clSnap=await db.collection('jjrepair_clientes').doc(String(CASO.cid)).get();
+      CLIENTE = clSnap.exists ? clSnap.data() : {nombre:'Cliente',tel:''};
+    } else {
+      CLIENTE = {nombre:'Cliente',tel:''};
+    }
+
+    render(CASO, CLIENTE);
+    showState('s-content');
+  }catch(err){
+    console.error(err);
+    showState('s-error');
+  }
+}
+
+function render(c, cl){
+  document.getElementById('c-modelo').textContent = `${TIPO_ICON[c.tipo]||'🔌'} ${c.modelo||'Equipo'}`;
+  document.getElementById('c-num').textContent = c.id ? `Caso #${String(c.id).slice(-4).toUpperCase()}` : '';
+
+  const estIdx = ESTADOS.indexOf(c.estado);
+  const badge = document.getElementById('c-badge');
+  badge.textContent = `${ESTADO_ICON[c.estado]||'•'} ${ESTADO_LABEL[c.estado]||c.estado||'—'}`;
+
+  const stepsEl=document.getElementById('c-steps');
+  const visibleSteps=['recibido','en proceso','listo','entregado'];
+  const curPos = c.estado==='espera pieza'||c.estado==='espera desbloqueo' ? 1 : visibleSteps.indexOf(c.estado);
+  stepsEl.innerHTML = visibleSteps.map((s,i)=>{
+    const cls = i<curPos ? 'done' : (i===curPos ? 'now' : '');
+    return `<div class="step ${cls}"><div class="dot">${i<curPos?'✓':(i+1)}</div><div class="lbl">${ESTADO_LABEL[s].split(' ')[0]}</div></div>`;
+  }).join('');
+
+  document.getElementById('c-cliente').textContent = cl.nombre || 'Cliente';
+  document.getElementById('c-equipo').textContent = c.modelo || '—';
+  if(c.serial){
+    document.getElementById('row-serial').style.display='flex';
+    document.getElementById('c-serial').textContent = c.serial;
+  }
+  document.getElementById('c-prob').textContent = c.prob || '—';
+  document.getElementById('c-fecha').textContent = fmtFecha(c.fecha) + (c.horaIngreso ? ' · ' + c.horaIngreso : '');
+  document.getElementById('c-pago').textContent = PAGO_LABEL[c.pago] || c.pago || '—';
+
+  const total = Number(c.precio||0);
+  const base = c.precioBase!=null ? Number(c.precioBase) : total;
+  document.getElementById('pr-total').textContent = `$${total.toFixed(2)}`;
+  if(c.ivu){
+    document.getElementById('pr-base-wrap').style.display='flex';
+    document.getElementById('pr-ivu-wrap').style.display='flex';
+    document.getElementById('pr-base').textContent = `$${base.toFixed(2)}`;
+    document.getElementById('pr-ivu').textContent = `$${(total-base).toFixed(2)}`;
+  }
+
+  if(c.notas && c.notas.length){
+    document.getElementById('card-notas').style.display='block';
+    document.getElementById('c-notas').innerHTML = c.notas.map(n=>{
+      const texto = typeof n==='string' ? n : n.texto;
+      const meta = typeof n==='object' && n.fecha ? `<div class="dt">${n.fecha} ${n.hora||''}</div>` : '';
+      return `<div class="note">${texto}${meta}</div>`;
+    }).join('');
+  }
+
+  if(c.fotos && c.fotos.length){
+    document.getElementById('card-fotos').style.display='block';
+    document.getElementById('c-fotos').innerHTML = c.fotos.map(f=>
+      `<img src="${f}" onclick="verFoto('${f.replace(/'/g,"\\'")}')" loading="lazy">`
+    ).join('');
+  }
+}
+
+function verFoto(src){
+  document.getElementById('imgModalSrc').src = src;
+  document.getElementById('imgModal').classList.add('on');
+}
+
+function copiarEnlace(){
+  navigator.clipboard.writeText(location.href).then(()=>{
+    alert('✅ Enlace copiado');
+  }).catch(()=>alert('No se pudo copiar'));
+}
+
+function compartirWA(){
+  if(!CASO) return;
+  const nombre=(CLIENTE.nombre||'').split(' ')[0]||'';
+  const msg=`Hola ${nombre} 👋 Aquí puedes ver el estado de tu reparación (${CASO.modelo}):\n${location.href}`;
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+}
+
+window.addEventListener('load', init);
+</script>
+</body>
+</html>

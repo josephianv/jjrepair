@@ -25,6 +25,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <!-- Gráficas del reporte -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;transition:background .3s,color .3s}
@@ -353,14 +354,16 @@ body.dark .note-del{color:#85B7EB}
 
 /* DETALLE */
 .det-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:14px}
-.det-row{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 14px;border-bottom:0.5px solid;font-size:13px}
+.det-row{display:flex;justify-content:space-between;align-items:flex-start;padding:9px 14px;border-bottom:0.5px solid;font-size:13px;transition:background .12s;border-radius:6px}
 body.light .det-row{border-color:#e0e8f0}
 body.dark .det-row{border-color:#2a2a2a}
+body.light .det-row:hover{background:#f5f8fc}
+body.dark .det-row:hover{background:#242424}
 .det-row:last-child{border-bottom:none}
 .det-l{font-size:12px;flex-shrink:0;margin-right:12px}
 body.light .det-l{color:#4a6080}
 body.dark .det-l{color:#888}
-.det-v{font-weight:500;text-align:right}
+.det-v{font-weight:700;text-align:right}
 body.dark .det-v{color:#e0e0e0}
 .est-btn{padding:5px 12px;border-radius:10px;border:1px solid;font-size:12px;cursor:pointer;transition:all .15s}
 body.light .est-btn{border-color:#ccd8e8;background:#fff;color:#1a3a5c}
@@ -900,6 +903,14 @@ service cloud.firestore {
                   <option value="ath-movil">📱 ATH Móvil</option>
                 </select>
               </div>
+              <div class="fg" style="margin-top:-4px">
+                <label style="display:flex;align-items:center;gap:6px;font-weight:400;cursor:pointer"><input type="checkbox" id="venta-split-toggle" onchange="toggleSplitPago()"> 🔀 Dividir entre varios métodos de pago</label>
+              </div>
+              <div id="venta-split-wrap" style="display:none;margin:6px 0 12px">
+                <div id="venta-split-list"></div>
+                <button type="button" class="xb" onclick="addSplitPago()" style="margin-top:4px">➕ Agregar método</button>
+                <div id="venta-split-status" style="font-size:12px;margin-top:8px;font-weight:600"></div>
+              </div>
               <div class="fg"><label><input type="checkbox" id="venta-ivu" onchange="renderCarrito()"> Aplicar IVU (11.50%)</label></div>
               <hr class="r-sep">
               <div id="venta-totales" style="font-size:14px"></div>
@@ -1109,14 +1120,16 @@ service cloud.firestore {
           <div class="pcard cfg-section">
             <div class="phead">💾 Backup de base de datos</div>
             <div class="cfg-body">
-              <p style="font-size:12px;color:#888;margin-bottom:12px">Exporta todos tus datos (clientes, casos, notas, fotos) en un archivo JSON que puedes guardar como respaldo.</p>
+              <p style="font-size:12px;color:#888;margin-bottom:12px">Exporta todos tus datos (clientes, casos, notas, fotos, inventario, ventas y créditos) en un archivo JSON que puedes guardar como respaldo.</p>
               <button class="btn-g" onclick="exportBackup()" style="margin-bottom:14px;width:100%;justify-content:center">📤 Exportar backup</button>
-              <hr style="margin:12px 0;border:none;border-top:1px solid #ccc;opacity:.3">
-              <p style="font-size:12px;color:#888;margin-bottom:10px">Restaurar desde un archivo de backup previamente exportado:</p>
-              <div style="display:flex;gap:8px;align-items:center">
-                <input type="file" id="restore-file" accept=".json" style="font-size:12px;flex:1">
+              <div class="cfg-section-negocio">
+                <hr style="margin:12px 0;border:none;border-top:1px solid #ccc;opacity:.3">
+                <p style="font-size:12px;color:#888;margin-bottom:10px">Restaurar desde un archivo de backup previamente exportado:</p>
+                <div style="display:flex;gap:8px;align-items:center">
+                  <input type="file" id="restore-file" accept=".json" style="font-size:12px;flex:1">
+                </div>
+                <button class="btn-red" onclick="importBackup()" style="margin-top:10px;width:100%">📥 Restaurar backup</button>
               </div>
-              <button class="btn-red" onclick="importBackup()" style="margin-top:10px;width:100%">📥 Restaurar backup</button>
               <p id="backup-msg" style="font-size:12px;margin-top:8px"></p>
             </div>
           </div>
@@ -1387,6 +1400,28 @@ service cloud.firestore {
         Abrir WhatsApp
       </button>
       <button class="btn-o" onclick="closeModal('modal-wa')" style="color:#fff;border-color:rgba(255,255,255,.3)">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL QR DE SEGUIMIENTO -->
+<div id="modal-qr" class="modal-bg hide">
+  <div class="modal" style="max-width:420px">
+    <div class="mhead"><h2>🔗 Seguimiento del cliente</h2><button class="mclose" onclick="closeModal('modal-qr')">✕</button></div>
+    <div class="mbody" style="text-align:center">
+      <p style="font-size:12px;opacity:.65;margin-bottom:14px">Comparte este código QR o el enlace para que el cliente vea el estado, notas y fotos de su reparación — sin necesidad de cuenta.</p>
+      <div id="qr-canvas-wrap" style="display:inline-block;padding:14px;background:#fff;border-radius:10px;border:1px solid #e3e9f2"></div>
+      <div style="font-size:11px;opacity:.55;margin:10px 0 4px">Código</div>
+      <div id="qr-code-txt" style="font-family:monospace;font-size:12px;font-weight:600;background:#f0f4f8;padding:6px 10px;border-radius:6px;display:inline-block"></div>
+      <div style="text-align:left;margin-top:14px">
+        <label style="font-size:11px;opacity:.6">Enlace de seguimiento</label>
+        <input type="text" id="qr-url-txt" readonly style="width:100%;font-size:11px;margin-top:4px" onclick="this.select()">
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;justify-content:center">
+        <button class="xb" onclick="qrCopiarEnlace()">🔗 Copiar enlace</button>
+        <button class="xb" onclick="qrDescargar()">💾 Descargar QR</button>
+        <button class="xb" style="background:#25D366;border-color:#25D366;color:#fff" onclick="qrCompartirWA()">💬 WhatsApp</button>
+      </div>
     </div>
   </div>
 </div>
@@ -2621,6 +2656,62 @@ function renderCarrito(){
       <div class="r-row"><span>IVU (11.50%):</span><span>$${ivuAmt.toFixed(2)}</span></div>`:'')+
       `<div class="r-row" style="font-size:17px;font-weight:700;margin-top:4px"><span>TOTAL:</span><span>$${total.toFixed(2)}</span></div>`;
   }
+  renderSplitStatus();
+}
+let ventaSplit=[];
+function toggleSplitPago(){
+  const on=document.getElementById('venta-split-toggle').checked;
+  document.getElementById('venta-split-wrap').style.display=on?'block':'none';
+  document.getElementById('venta-metodo').closest('.fg').style.display=on?'none':'block';
+  if(on && !ventaSplit.length){
+    ventaSplit=[{metodo:'cash',monto:0},{metodo:'ath-movil',monto:0}];
+  }
+  renderSplitPagos();
+}
+function addSplitPago(){
+  ventaSplit.push({metodo:'cash',monto:0});
+  renderSplitPagos();
+}
+function removeSplitPago(i){
+  ventaSplit.splice(i,1);
+  renderSplitPagos();
+}
+function updateSplitPago(i,field,val){
+  ventaSplit[i][field]=field==='monto'?(parseFloat(val)||0):val;
+  renderSplitStatus();
+}
+function renderSplitPagos(){
+  const el=document.getElementById('venta-split-list');if(!el)return;
+  el.innerHTML=ventaSplit.map((p,i)=>`
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+      <select onchange="updateSplitPago(${i},'metodo',this.value)" style="flex:1;font-size:12px;padding:6px 8px;border:1px solid #ccd8e8;border-radius:5px">
+        <option value="cash"${p.metodo==='cash'?' selected':''}>💵 Cash</option>
+        <option value="ath"${p.metodo==='ath'?' selected':''}>💳 ATH</option>
+        <option value="ath-movil"${p.metodo==='ath-movil'?' selected':''}>📱 ATH Móvil</option>
+      </select>
+      <input type="number" min="0" step="0.01" value="${p.monto||''}" placeholder="0.00" oninput="updateSplitPago(${i},'monto',this.value)" style="width:85px;font-size:12px;padding:6px 8px;border:1px solid #ccd8e8;border-radius:5px">
+      ${ventaSplit.length>1?`<button type="button" class="xb d" style="padding:6px 9px" onclick="removeSplitPago(${i})">🗑</button>`:''}
+    </div>`).join('');
+  renderSplitStatus();
+}
+function renderSplitStatus(){
+  const status=document.getElementById('venta-split-status');
+  if(!status||document.getElementById('venta-split-toggle')?.checked!==true)return;
+  const ivu=document.getElementById('venta-ivu')?.checked;
+  const sub=carritoSubtotal();
+  const total=sub+(ivu?+(sub*0.115).toFixed(2):0);
+  const asignado=ventaSplit.reduce((s,p)=>s+(Number(p.monto)||0),0);
+  const diff=+(total-asignado).toFixed(2);
+  if(Math.abs(diff)<0.01){
+    status.style.color='#2C6E1A';
+    status.textContent=`✅ Asignado $${asignado.toFixed(2)} de $${total.toFixed(2)}`;
+  } else if(diff>0){
+    status.style.color='#A32D2D';
+    status.textContent=`⚠️ Faltan $${diff.toFixed(2)} por asignar (total: $${total.toFixed(2)})`;
+  } else {
+    status.style.color='#A32D2D';
+    status.textContent=`⚠️ Te pasaste por $${Math.abs(diff).toFixed(2)} (total: $${total.toFixed(2)})`;
+  }
 }
 function editarVenta(id){
   const v=ventas.find(x=>x.id===id);if(!v)return;
@@ -2632,8 +2723,17 @@ function editarVenta(id){
   document.getElementById('venta-cli-tel').value=v.tel||'';
   document.getElementById('venta-cli-id').value=v.cid||'';
   document.getElementById('venta-cli-match').style.display=v.cid?'block':'none';
-  document.getElementById('venta-metodo').value=v.metodo||'cash';
+  document.getElementById('venta-metodo').value=(v.pagos&&v.pagos.length)?'cash':(v.metodo||'cash');
   document.getElementById('venta-ivu').checked=!!v.ivu;
+  if(v.pagos&&v.pagos.length){
+    ventaSplit=v.pagos.map(p=>({metodo:p.metodo,monto:p.monto}));
+    document.getElementById('venta-split-toggle').checked=true;
+    toggleSplitPago();
+  } else {
+    ventaSplit=[];
+    document.getElementById('venta-split-toggle').checked=false;
+    toggleSplitPago();
+  }
   document.getElementById('venta-edit-banner').style.display='flex';
   document.getElementById('venta-cobrar-btn').textContent='💾 Guardar cambios de la venta';
   renderCarrito();
@@ -2646,6 +2746,9 @@ function cancelarEdicionVenta(){
   document.getElementById('venta-cli-tel').value='';
   document.getElementById('venta-cli-id').value='';
   document.getElementById('venta-cli-match').style.display='none';
+  ventaSplit=[];
+  document.getElementById('venta-split-toggle').checked=false;
+  toggleSplitPago();
   document.getElementById('venta-edit-banner').style.display='none';
   document.getElementById('venta-cobrar-btn').textContent='✅ Cobrar y generar recibo';
   renderCarrito();
@@ -2720,7 +2823,20 @@ async function finalizarVenta(){
   const sub=carritoSubtotal();
   const ivuAmt=ivu?+(sub*0.115).toFixed(2):0;
   const total=sub+ivuAmt;
-  const metodo=document.getElementById('venta-metodo').value;
+  const splitOn=document.getElementById('venta-split-toggle')?.checked;
+  let metodo, pagos=null;
+  if(splitOn){
+    const lineas=ventaSplit.filter(p=>Number(p.monto)>0);
+    const asignado=lineas.reduce((s,p)=>s+Number(p.monto),0);
+    if(!lineas.length||Math.abs(total-asignado)>=0.01){
+      alert(`⚠️ El pago dividido no cuadra con el total.\nTotal: $${total.toFixed(2)} — Asignado: $${asignado.toFixed(2)}`);
+      return;
+    }
+    pagos=lineas.map(p=>({metodo:p.metodo,monto:+Number(p.monto).toFixed(2)}));
+    metodo='split';
+  } else {
+    metodo=document.getElementById('venta-metodo').value;
+  }
   const cliNomRaw=document.getElementById('venta-cli-nom').value.trim();
   const cliTel=document.getElementById('venta-cli-tel').value.trim();
   const cliNom=cliNomRaw||'Cliente walk-in';
@@ -2753,7 +2869,7 @@ async function finalizarVenta(){
     fecha:esEdicion?ventaOriginal.fecha:new Date().toISOString(),
     editado:esEdicion?new Date().toISOString():undefined,
     items:carrito.map(c=>({id:c.id,nombre:c.nombre,sku:c.sku,precio:c.precio,cantidad:c.cantidad})),
-    subtotal:sub,ivu,ivuAmt,total,metodo,cliente:cliNom,tel:cliTel,cid:ventaCid
+    subtotal:sub,ivu,ivuAmt,total,metodo,pagos,cliente:cliNom,tel:cliTel,cid:ventaCid
   };
   let cloudOk=true;
   // Ajustar inventario solo por la DIFERENCIA neta (no por el carrito completo)
@@ -2793,6 +2909,9 @@ async function finalizarVenta(){
   document.getElementById('venta-cli-tel').value='';
   document.getElementById('venta-cli-id').value='';
   document.getElementById('venta-cli-match').style.display='none';
+  ventaSplit=[];
+  document.getElementById('venta-split-toggle').checked=false;
+  toggleSplitPago();
   document.getElementById('venta-edit-banner').style.display='none';
   document.getElementById('venta-cobrar-btn').textContent='✅ Cobrar y generar recibo';
   renderCarrito();renderVentasHist();updateBadges();
@@ -2812,7 +2931,7 @@ function renderVentasHist(){
         <span class="venta-card-fecha">${new Date(v.fecha).toLocaleString('es-PR')}</span>
         <strong>$${Number(v.total).toFixed(2)}</strong>
       </div>
-      <div class="venta-card-mid">👤 ${v.cliente} · ${v.items.reduce((s,i)=>s+i.cantidad,0)} unid.</div>
+      <div class="venta-card-mid">👤 ${v.cliente} · ${v.items.reduce((s,i)=>s+i.cantidad,0)} unid. · ${fmtPago(v)}</div>
       <div class="venta-card-actions">
         <button class="xb" onclick="showVentaReceipt('${v.id}')">🧾 Ver</button>
         <button class="xb btn-eliminar-admin" onclick="editarVenta('${v.id}')">✏️ Editar</button>
@@ -2836,7 +2955,7 @@ function showVentaReceipt(id){
   currentVentaId=id;
   const v=ventas.find(x=>x.id===id);if(!v)return;
   const fecha=new Date(v.fecha).toLocaleString('es-PR');
-  const metodo=({'cash':'💵 Cash','ath':'💳 ATH','ath-movil':'📱 ATH Móvil'}[v.metodo]||v.metodo);
+  const metodo=fmtPago(v);
   document.getElementById('receipt-venta-content').innerHTML=`
     <div class="receipt">
       ${businessLogo?`<div style="text-align:center;margin-bottom:6px"><img src="${businessLogo}" style="max-height:50px;max-width:160px"></div>`:''}
@@ -2864,7 +2983,7 @@ function showVentaReceipt(id){
 function enviarVentaWA(){
   const v=ventas.find(x=>x.id===currentVentaId);if(!v)return;
   const fecha=new Date(v.fecha).toLocaleString('es-PR');
-  const metodo=({'cash':'💵 Cash','ath':'💳 ATH','ath-movil':'📱 ATH Móvil'}[v.metodo]||v.metodo);
+  const metodo=fmtPago(v);
   const linea='─────────────────────';
   let msg=`🧾 *RECIBO DE VENTA — ${(businessName||'JJ Electronic Repair').toUpperCase()}*\n`;
   if(businessTel) msg+=`📞 ${businessTel}\n`;
@@ -3084,12 +3203,17 @@ function verDetalle(id){
         </div>
       </div>
       <div class="pcard">
-        <div class="phead" style="display:flex;align-items:center;justify-content:space-between">
+        <div class="phead" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
           <span>📝 Notas técnicas</span>
-          <button class="xb" style="background:#25D366;border-color:#25D366;color:#fff;font-size:11px;padding:4px 10px" onclick="openWA('${c.id}')">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
-            Enviar por WhatsApp
-          </button>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            <button class="xb" style="background:#185FA5;border-color:#185FA5;color:#fff;font-size:11px;padding:4px 10px" onclick="abrirQR('${c.id}')">
+              🔗 QR seguimiento
+            </button>
+            <button class="xb" style="background:#25D366;border-color:#25D366;color:#fff;font-size:11px;padding:4px 10px" onclick="openWA('${c.id}')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" style="flex-shrink:0"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+              Enviar por WhatsApp
+            </button>
+          </div>
         </div>
         <div style="padding:10px 12px;min-height:44px;line-height:2" id="note-list-${c.id}">${notasHTML}</div>
         <div style="display:flex;gap:6px;padding:10px 12px;border-top:1px solid rgba(0,0,0,.08)">
@@ -3450,6 +3574,12 @@ function verFotoGrande(src){
 // ── RECEIPT ────────────────────────────────────────────────────
 let currentReceiptCasoId=null;
 function fmtMetodo(m){return m==='cash'?'💵 Cash':m==='ath'?'💳 ATH':m==='ath-movil'?'📱 ATH Móvil':'—'}
+function fmtPago(v){
+  if(v.pagos&&v.pagos.length){
+    return v.pagos.map(p=>`${fmtMetodo(p.metodo)} $${Number(p.monto).toFixed(2)}`).join(' + ');
+  }
+  return v.metodo?fmtMetodo(v.metodo):'—';
+}
 function showReceipt(id){
   currentReceiptCasoId=id;
   const c=casos.find(x=>x.id===id);if(!c)return;
@@ -3550,7 +3680,7 @@ function histCliente(id){
   // Combinamos reparaciones, ventas y créditos en una sola línea de tiempo
   const tx=[
     ...ks.map(c=>({tipo:'rep',fecha:c.fecha,label:`${ico(c.tipo)} ${c.modelo}`,sub:c.prob,monto:Number(c.precio||0),estado:bEst(c.estado),pago:bPago(c.pago),ref:c})),
-    ...vs.map(v=>({tipo:'venta',fecha:v.fecha.slice(0,10),label:`🛒 Venta`,sub:v.items.map(it=>`${it.cantidad}x ${it.nombre}`).join(', '),monto:Number(v.total||0),estado:null,pago:v.metodo?fmtMetodo(v.metodo):'—',ref:v})),
+    ...vs.map(v=>({tipo:'venta',fecha:v.fecha.slice(0,10),label:`🛒 Venta`,sub:v.items.map(it=>`${it.cantidad}x ${it.nombre}`).join(', '),monto:Number(v.total||0),estado:null,pago:fmtPago(v),ref:v})),
     ...kr.map(k=>({tipo:'credito',fecha:k.fecha.slice(0,10),label:`🎟️ Crédito emitido`,sub:k.motivo,monto:Number(k.monto||0),estado:null,pago:'',ref:k}))
   ].sort((a,b)=>b.fecha.localeCompare(a.fecha));
   go('detalle');
@@ -3610,6 +3740,15 @@ function renderReporte(){
     else porMetodo.otro+=Number(c.precio||0);
   });
   ventas.forEach(v=>{
+    if(v.pagos&&v.pagos.length){
+      v.pagos.forEach(p=>{
+        if(p.metodo==='cash')porMetodo.cash+=Number(p.monto||0);
+        else if(p.metodo==='ath')porMetodo.ath+=Number(p.monto||0);
+        else if(p.metodo==='ath-movil')porMetodo['ath-movil']+=Number(p.monto||0);
+        else porMetodo.otro+=Number(p.monto||0);
+      });
+      return;
+    }
     const m=v.metodo||'';
     if(m==='cash')porMetodo.cash+=Number(v.total||0);
     else if(m==='ath')porMetodo.ath+=Number(v.total||0);
@@ -3706,7 +3845,7 @@ function renderReporte(){
     ${ventas.length?`<table class="tbl"><thead><tr><th style="width:28px">#</th><th style="width:130px">Fecha</th><th style="width:130px">Cliente</th><th>Productos</th><th style="width:80px">Unid.</th><th style="width:90px">Método</th><th style="width:70px">IVU</th><th style="width:80px">Total</th></tr></thead><tbody>`+
     ventas.slice().sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).map((v,i)=>{
       const itemsStr=v.items.map(it=>`${it.cantidad}x ${it.nombre}`).join(', ');
-      return`<tr><td style="font-size:11px;opacity:.5">${i+1}</td><td style="font-size:11px;opacity:.7">${new Date(v.fecha).toLocaleString('es-PR')}</td><td style="font-size:12px">${v.cliente}</td><td style="font-size:11px;opacity:.7">${itemsStr}</td><td style="font-size:12px;text-align:center">${v.items.reduce((s,it)=>s+Number(it.cantidad),0)}</td><td style="font-size:11px">${v.metodo?fmtMetodo(v.metodo):'—'}</td><td style="font-size:12px;color:#185FA5">${v.ivu?'$'+Number(v.ivuAmt).toFixed(2):'—'}</td><td style="font-size:13px;font-weight:600">$${Number(v.total).toFixed(2)}</td></tr>`;
+      return`<tr><td style="font-size:11px;opacity:.5">${i+1}</td><td style="font-size:11px;opacity:.7">${new Date(v.fecha).toLocaleString('es-PR')}</td><td style="font-size:12px">${v.cliente}</td><td style="font-size:11px;opacity:.7">${itemsStr}</td><td style="font-size:12px;text-align:center">${v.items.reduce((s,it)=>s+Number(it.cantidad),0)}</td><td style="font-size:11px">${fmtPago(v)}</td><td style="font-size:12px;color:#185FA5">${v.ivu?'$'+Number(v.ivuAmt).toFixed(2):'—'}</td><td style="font-size:13px;font-weight:600">$${Number(v.total).toFixed(2)}</td></tr>`;
     }).join('')+
     '</tbody></table>':'<div class="empty"><span class="ei">🛍️</span>Sin ventas registradas</div>'}
   </div>
@@ -3831,7 +3970,7 @@ function exportarReporteExcel(){
     i+1, new Date(v.fecha).toLocaleString('es-PR'), v.cliente,
     v.items.map(it=>`${it.cantidad}x ${it.nombre}`).join(', '),
     v.items.reduce((s,it)=>s+Number(it.cantidad),0),
-    v.metodo?fmtMetodo(v.metodo):'—', v.ivu?Number(v.ivuAmt):0, Number(v.total)
+    fmtPago(v), v.ivu?Number(v.ivuAmt):0, Number(v.total)
   ]);
   const wsVentas=XLSX.utils.aoa_to_sheet([ventasHead,...ventasRows]);
   wsVentas['!cols']=[{wch:4},{wch:18},{wch:18},{wch:40},{wch:10},{wch:12},{wch:8},{wch:10}];
@@ -3989,7 +4128,7 @@ async function exportBackup(){
   const dm=await dbGet('config','darkMode');
   const lg=await dbGet('config','businessLogo');
   const md=await dbGet('config','modelos');
-  const backup={version:6,fecha:new Date().toISOString(),clientes:clients,casos:casos,inventario:inventario,ventas:ventas,config:{password:pw?pw.value:'1234',darkMode:dm?dm.value:false,businessLogo:lg?lg.value:null,modelos:md?md.value:[]}};
+  const backup={version:7,fecha:new Date().toISOString(),clientes:clients,casos:casos,inventario:inventario,ventas:ventas,creditos:creditos,config:{password:pw?pw.value:'1234',darkMode:dm?dm.value:false,businessLogo:lg?lg.value:null,modelos:md?md.value:[]}};
   const blob=new Blob([JSON.stringify(backup,null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
@@ -3997,10 +4136,11 @@ async function exportBackup(){
   document.body.appendChild(a);a.click();document.body.removeChild(a);URL.revokeObjectURL(url);
   const msg=document.getElementById('backup-msg');
   const sizeKB=(blob.size/1024).toFixed(1);
-  msg.style.color='#27500A';msg.textContent=`✅ Backup exportado con éxito (${sizeKB} KB · ${clients.length} clientes, ${casos.length} casos, ${inventario.length} piezas, ${ventas.length} ventas)`;
+  msg.style.color='#27500A';msg.textContent=`✅ Backup exportado con éxito (${sizeKB} KB · ${clients.length} clientes, ${casos.length} casos, ${inventario.length} piezas, ${ventas.length} ventas, ${creditos.length} créditos)`;
   setTimeout(()=>msg.textContent='',5000);
 }
 async function importBackup(){
+  if(userRole!=='admin'){alert('Solo el administrador puede restaurar un backup.');return}
   const file=document.getElementById('restore-file').files[0];
   const msg=document.getElementById('backup-msg');
   if(!file){msg.style.color='#A32D2D';msg.textContent='❌ Selecciona un archivo de backup primero';return}
@@ -4010,7 +4150,7 @@ async function importBackup(){
   reader.onload=async e=>{
     try{
       const data=JSON.parse(e.target.result);
-      if(!data.clientes||!data.casos){msg.style.color='#A32D2D';msg.textContent='❌ Archivo inválido: faltan datos de clientes o casos';return}
+      if(!Array.isArray(data.clientes)||!Array.isArray(data.casos)){msg.style.color='#A32D2D';msg.textContent='❌ Archivo inválido: faltan datos de clientes o casos';return}
       await dbClear('clientes');await dbClear('casos');
       for(const c of data.clientes) await dbPut('clientes',c);
       for(const c of data.casos) await dbPut('casos',c);
@@ -4023,6 +4163,11 @@ async function importBackup(){
         await dbClear('ventas');
         for(const v of data.ventas) await dbPut('ventas',v);
         ventas=data.ventas;
+      }
+      if(Array.isArray(data.creditos)){
+        await dbClear('creditos');
+        for(const k of data.creditos) await dbPut('creditos',k);
+        creditos=data.creditos;
       }
       if(data.config){
         await dbPut('config',{key:'password',value:data.config.password||'1234'});
@@ -4113,18 +4258,29 @@ function exportPDF(){
     const totalIvu=filtrados.filter(c=>c.ivu).reduce((s,c)=>s+(Number(c.precio||0)-Number(c.precioBase||c.precio||0)),0);
     const totalFacturado=cobrado+pendiente+parcial;
 
+    const pagoPill=p=>{
+      const map={pagado:['#E8F5E1','#2C6E1A','✔ Pagado'],pendiente:['#FBEAEA','#A32D2D','⏱ Pendiente'],parcial:['#FDF3E3','#8A5A0A','◐ Parcial']};
+      const [bg,fg,label]=map[p]||['#EEE','#666',p||'—'];
+      return `<span style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;background:${bg};color:${fg};white-space:nowrap">${label}</span>`;
+    };
+    const estadoPill=e=>{
+      const map={recibido:['#EAF0F8','#3B5F82'],'en proceso':['#E7F0FC','#1E5FA8'],'espera pieza':['#FDF3E3','#8A5A0A'],'espera desbloqueo':['#F3E9FB','#6B3FA0'],listo:['#E4F5EE','#0F7A5C'],entregado:['#E8F5E1','#2C6E1A']};
+      const [bg,fg]=map[e]||['#EEE','#666'];
+      return `<span style="display:inline-block;padding:3px 9px;border-radius:20px;font-size:10px;font-weight:700;background:${bg};color:${fg};white-space:nowrap;text-transform:capitalize">${e||'—'}</span>`;
+    };
+
     const filas=filtrados.map((c,i)=>{
       const base=c.precioBase!=null?Number(c.precioBase):Number(c.precio||0);
       const ivu=c.ivu?+(Number(c.precio||0)-base).toFixed(2):0;
       return `<tr>
-        <td>${i+1}</td>
+        <td style="color:#8a9bb0;font-weight:600">${i+1}</td>
         <td>${fmtD(c.fecha)}</td>
-        <td>${cn(c.cid)}</td>
-        <td>${c.tipo||''} — ${c.modelo||''}</td>
-        <td>${c.estado||''}</td>
-        <td>${c.pago||''}</td>
-        <td>${c.tipoPago?fmtMetodo(c.tipoPago):'—'}</td>
-        <td style="text-align:right">${c.ivu?'$'+ivu.toFixed(2):'—'}</td>
+        <td style="font-weight:600">${cn(c.cid)}</td>
+        <td>${ico(c.tipo)} ${c.modelo||''}</td>
+        <td>${estadoPill(c.estado)}</td>
+        <td>${pagoPill(c.pago)}</td>
+        <td style="color:#667">${c.tipoPago?fmtMetodo(c.tipoPago):'—'}</td>
+        <td style="text-align:right;color:#667">${c.ivu?'$'+ivu.toFixed(2):'—'}</td>
         <td style="text-align:right"><strong>$${Number(c.precio||0).toFixed(2)}</strong></td>
       </tr>`;
     }).join('');
@@ -4132,45 +4288,69 @@ function exportPDF(){
     const html=`<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8">
     <title>Reporte ${mesNombre} ${ano} — ${businessName||'JJ Electronic Repair'}</title>
     <style>
-      *{box-sizing:border-box;margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
-      body{padding:32px;color:#1a3a5c}
-      .pdf-header{display:flex;align-items:center;gap:14px;border-bottom:3px solid #185FA5;padding-bottom:14px;margin-bottom:18px}
-      .pdf-header img{max-height:54px;max-width:160px}
-      .pdf-header h1{font-size:20px;color:#185FA5}
-      .pdf-header p{font-size:12px;color:#666;margin-top:2px}
-      .pdf-title{font-size:15px;font-weight:600;margin-bottom:16px;color:#185FA5}
-      .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:22px}
-      .sumbox{border:1px solid #ccd8e8;border-radius:8px;padding:10px 12px}
-      .sumbox .n{font-size:17px;font-weight:700}
-      .sumbox .l{font-size:10px;color:#666;margin-top:2px;text-transform:uppercase;letter-spacing:.3px}
-      table{width:100%;border-collapse:collapse;font-size:11px}
-      th{background:#185FA5;color:#fff;text-align:left;padding:7px 8px;font-weight:600}
-      td{padding:6px 8px;border-bottom:1px solid #e0e8f0}
-      tr:nth-child(even){background:#f8fafc}
-      tfoot td{font-weight:700;border-top:2px solid #185FA5;background:#f0f4f8}
-      .pdf-footer{margin-top:24px;text-align:center;font-size:11px;color:#888;border-top:1px solid #e0e8f0;padding-top:12px}
-      @media print{body{padding:14px}}
+      *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#eef3f9;color:#1a3a5c;padding:36px}
+      .sheet{max-width:840px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(15,40,64,.12)}
+      .pdf-header{display:flex;align-items:center;gap:16px;padding:28px 32px;background:linear-gradient(135deg,#0f2840,#185FA5);color:#fff}
+      .pdf-header img{max-height:52px;max-width:150px;background:#fff;border-radius:8px;padding:4px}
+      .pdf-header h1{font-size:19px;letter-spacing:.3px;font-weight:700}
+      .pdf-header p{font-size:11.5px;opacity:.85;margin-top:4px}
+      .pdf-header .badge-mes{margin-left:auto;text-align:right}
+      .pdf-header .badge-mes .m{font-size:22px;font-weight:800;letter-spacing:-.3px}
+      .pdf-header .badge-mes .y{font-size:11px;opacity:.8;font-weight:600;letter-spacing:.5px}
+      .content{padding:28px 32px 32px}
+      .pdf-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#8a9bb0;margin-bottom:14px}
+      .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px}
+      .sumbox{border-radius:12px;padding:14px 14px;background:#f7fafd;border:1px solid #e2eaf3;border-top:3px solid #185FA5}
+      .sumbox.ok{border-top-color:#2C6E1A}
+      .sumbox.warn{border-top-color:#A32D2D}
+      .sumbox.neu{border-top-color:#8A5A0A}
+      .sumbox .n{font-size:19px;font-weight:800;letter-spacing:-.3px}
+      .sumbox .l{font-size:10px;color:#7488a0;margin-top:3px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
+      table{width:100%;border-collapse:collapse;font-size:11.5px}
+      thead th{background:#0f2840;color:#fff;text-align:left;padding:10px 10px;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px}
+      thead th:first-child{border-radius:8px 0 0 0}
+      thead th:last-child{border-radius:0 8px 0 0}
+      td{padding:9px 10px;border-bottom:1px solid #eef2f7}
+      tbody tr:nth-child(even){background:#f8fafc}
+      tbody tr:hover{background:#eef4fb}
+      tfoot td{font-weight:800;border-top:2px solid #0f2840;background:#eef3f9;padding:12px 10px;font-size:12.5px}
+      .pdf-footer{margin-top:26px;text-align:center;font-size:10.5px;color:#9aa9bb;padding-top:14px;border-top:1px solid #eef2f7}
+      @media print{
+        body{background:#fff;padding:0}
+        .sheet{box-shadow:none;border-radius:0;max-width:100%}
+        tbody tr{break-inside:avoid}
+      }
     </style></head><body>
+    <div class="sheet">
       <div class="pdf-header">
         ${businessLogo?`<img src="${businessLogo}">`:''}
         <div>
           <h1>${(businessName||'JJ Electronic Repair').toUpperCase()}</h1>
-          <p>${businessTel?'Tel: '+businessTel+' · ':''}${businessDir?businessDir+' · ':''}Reporte generado el ${new Date().toLocaleDateString('es-PR')}</p>
+          <p>${businessTel?'📞 '+businessTel+'  ':''}${businessDir?'📍 '+businessDir:''}</p>
+        </div>
+        <div class="badge-mes">
+          <div class="m">${mesNombre.charAt(0).toUpperCase()+mesNombre.slice(1)}</div>
+          <div class="y">${ano}</div>
         </div>
       </div>
-      <div class="pdf-title">📊 Reporte mensual — ${mesNombre.charAt(0).toUpperCase()+mesNombre.slice(1)} ${ano}</div>
-      <div class="summary">
-        <div class="sumbox"><div class="n">${filtrados.length}</div><div class="l">Casos del mes</div></div>
-        <div class="sumbox"><div class="n" style="color:#27500A">$${cobrado.toFixed(2)}</div><div class="l">Cobrado</div></div>
-        <div class="sumbox"><div class="n" style="color:#791F1F">$${pendiente.toFixed(2)}</div><div class="l">Pendiente</div></div>
-        <div class="sumbox"><div class="n">$${totalIvu.toFixed(2)}</div><div class="l">IVU total</div></div>
+      <div class="content">
+        <div class="pdf-title">📊 Resumen del mes</div>
+        <div class="summary">
+          <div class="sumbox"><div class="n">${filtrados.length}</div><div class="l">Casos del mes</div></div>
+          <div class="sumbox ok"><div class="n" style="color:#2C6E1A">$${cobrado.toFixed(2)}</div><div class="l">Cobrado</div></div>
+          <div class="sumbox warn"><div class="n" style="color:#A32D2D">$${pendiente.toFixed(2)}</div><div class="l">Pendiente</div></div>
+          <div class="sumbox neu"><div class="n">$${totalIvu.toFixed(2)}</div><div class="l">IVU total</div></div>
+        </div>
+        <div class="pdf-title">🔧 Detalle de reparaciones</div>
+        <table>
+          <thead><tr><th>#</th><th>Fecha</th><th>Cliente</th><th>Equipo</th><th>Estado</th><th>Pago</th><th>Método</th><th style="text-align:right">IVU</th><th style="text-align:right">Total</th></tr></thead>
+          <tbody>${filas}</tbody>
+          <tfoot><tr><td colspan="8" style="text-align:right">TOTAL FACTURADO</td><td style="text-align:right">$${totalFacturado.toFixed(2)}</td></tr></tfoot>
+        </table>
+        <div class="pdf-footer">${businessName||'JJ Electronic Repair'} © ${ano} · Reporte confidencial de uso interno · Generado el ${new Date().toLocaleDateString('es-PR')}</div>
       </div>
-      <table>
-        <thead><tr><th>#</th><th>Fecha</th><th>Cliente</th><th>Equipo</th><th>Estado</th><th>Pago</th><th>Método</th><th>IVU</th><th>Total</th></tr></thead>
-        <tbody>${filas}</tbody>
-        <tfoot><tr><td colspan="8" style="text-align:right">TOTAL FACTURADO</td><td style="text-align:right">$${totalFacturado.toFixed(2)}</td></tr></tfoot>
-      </table>
-      <div class="pdf-footer">${businessName||'JJ Electronic Repair'} © ${ano} · Reporte confidencial de uso interno</div>
+    </div>
       <script>window.onload=()=>{window.print()}<\/script>
     </body></html>`;
 
@@ -4267,6 +4447,63 @@ function enviarWA(){
   const url=`https://wa.me/${numLimpio}?text=${encodeURIComponent(msg)}`;
   window.open(url,'_blank');
   closeModal('modal-wa');
+}
+
+// ── QR DE SEGUIMIENTO PARA EL CLIENTE ──────────────────────────
+let currentQRCasoId=null;
+function genTrackingCode(){
+  const d=new Date();
+  const p=n=>String(n).padStart(2,'0');
+  const rnd=Math.random().toString(36).substring(2,8).toUpperCase();
+  return `JJER${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}${p(d.getHours())}${p(d.getMinutes())}${p(d.getSeconds())}${rnd}`;
+}
+function trackingURL(code){
+  // Base fija del sitio publicado en GitHub Pages
+  const base='https://josephianv.github.io/jjrepair';
+  return `${base}/track.html?code=${code}`;
+}
+async function abrirQR(casoId){
+  currentQRCasoId=casoId;
+  const c=casos.find(x=>x.id===casoId);if(!c)return;
+  if(!c.trackingCode){
+    c.trackingCode=genTrackingCode();
+    try{ await dbPut('casos',c); }
+    catch(e){ alert('⚠️ No se pudo guardar el código de seguimiento: '+e.message); return; }
+  }
+  const url=trackingURL(c.trackingCode);
+  document.getElementById('qr-code-txt').textContent=c.trackingCode;
+  document.getElementById('qr-url-txt').value=url;
+  document.getElementById('qr-canvas-wrap').innerHTML='';
+  new QRCode(document.getElementById('qr-canvas-wrap'),{
+    text:url, width:200, height:200,
+    colorDark:'#0f2840', colorLight:'#ffffff',
+    correctLevel:QRCode.CorrectLevel.H
+  });
+  openModal('modal-qr');
+}
+function qrCopiarEnlace(){
+  const url=document.getElementById('qr-url-txt').value;
+  navigator.clipboard.writeText(url).then(()=>alert('✅ Enlace copiado')).catch(()=>alert('❌ No se pudo copiar'));
+}
+function qrDescargar(){
+  const c=casos.find(x=>x.id===currentQRCasoId);
+  const img=document.querySelector('#qr-canvas-wrap img');
+  const canvas=document.querySelector('#qr-canvas-wrap canvas');
+  const src = img ? img.src : (canvas ? canvas.toDataURL('image/png') : null);
+  if(!src){ alert('⚠️ El QR aún no está listo'); return; }
+  const a=document.createElement('a');
+  a.href=src;
+  a.download=`seguimiento_${c?c.id.slice(-6):'jj'}.png`;
+  a.click();
+}
+function qrCompartirWA(){
+  const c=casos.find(x=>x.id===currentQRCasoId);if(!c)return;
+  const cl=clients.find(x=>x.id===c.cid)||{nombre:'',tel:''};
+  const url=document.getElementById('qr-url-txt').value;
+  const msg=`Hola ${cl.nombre.split(' ')[0]||''} 👋\n*${businessName||'JJ Electronic Repair'}*\n\nAquí puedes ver el estado de tu reparación en cualquier momento:\n📱 ${c.modelo}\n\n${url}\n\n¡Gracias por tu preferencia! 🙏`;
+  const tel=fmtTelWA(cl.tel||'');
+  const url2 = tel ? `https://wa.me/${tel}?text=${encodeURIComponent(msg)}` : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+  window.open(url2,'_blank');
 }
 
 // ── INIT ──────────────────────────────────────────────────────
