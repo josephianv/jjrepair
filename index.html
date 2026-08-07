@@ -1913,10 +1913,48 @@ async function dbPut(storeName, obj){
   // Firestore necesita un id de documento — usamos 'id' o 'key' del objeto
   const docId = String(obj.id !== undefined ? obj.id : obj.key);
   await col(storeName).doc(docId).set(obj);
+  if(storeName==='casos' && obj.trackingCode){
+    await syncTrackingMirror(obj);
+  }
   return obj;
 }
 async function dbDelete(storeName, key){
+  if(storeName==='casos'){
+    const c = casos.find(x=>String(x.id)===String(key));
+    if(c && c.trackingCode){
+      try{ await fsDB.collection('jjrepair_tracking').doc(c.trackingCode).delete(); }
+      catch(e){ console.error('No se pudo borrar el espejo público de seguimiento', e); }
+    }
+  }
   await col(storeName).doc(String(key)).delete();
+}
+// Copia SOLO los campos que un cliente puede ver públicamente hacia
+// jjrepair_tracking/{trackingCode}. Nunca copia teléfono ni ningún otro
+// dato del cliente, precios internos de costo, ni el resto del caso.
+async function syncTrackingMirror(c){
+  try{
+    const cl = clients.find(x=>x.id===c.cid) || {};
+    const mirror = {
+      trackingCode: c.trackingCode,
+      clienteNombre: cl.nombre || 'Cliente',
+      tipo: c.tipo || '',
+      modelo: c.modelo || '',
+      serial: c.serial || '',
+      prob: c.prob || '',
+      estado: c.estado || '',
+      pago: c.pago || '',
+      precio: c.precio!=null?Number(c.precio):0,
+      precioBase: c.precioBase!=null?Number(c.precioBase):null,
+      ivu: !!c.ivu,
+      fecha: c.fecha || '',
+      horaIngreso: c.horaIngreso || '',
+      notas: c.notas || [],
+      fotos: c.fotos || [],
+      businessName: businessName || 'JJ Electronic Repair',
+      updatedAt: Date.now()
+    };
+    await fsDB.collection('jjrepair_tracking').doc(c.trackingCode).set(mirror);
+  }catch(e){ console.error('No se pudo sincronizar el espejo público de seguimiento', e); }
 }
 async function dbClear(storeName){
   const snap = await col(storeName).get();
@@ -3580,7 +3618,7 @@ function fmtPago(v){
   }
   return v.metodo?fmtMetodo(v.metodo):'—';
 }
-function showReceipt(id){
+async function showReceipt(id){
   currentReceiptCasoId=id;
   const c=casos.find(x=>x.id===id);if(!c)return;
   const cl=clients.find(x=>x.id===c.cid)||{nombre:'?',tel:''};
@@ -3588,6 +3626,12 @@ function showReceipt(id){
   const base=c.precioBase!=null?Number(c.precioBase):Number(c.precio);
   const ivuAmt=c.ivu?+(Number(c.precio)-base).toFixed(2):0;
   const metodo=c.tipoPago?fmtMetodo(c.tipoPago):'—';
+  // Asegura que el caso tenga código de seguimiento para poner su QR en el recibo
+  if(!c.trackingCode){
+    c.trackingCode=genTrackingCode();
+    try{ await dbPut('casos',c); }catch(e){ console.error('No se pudo guardar trackingCode',e); }
+  }
+  const trackUrl=trackingURL(c.trackingCode);
   document.getElementById('receipt-content').innerHTML=`
     <div class="receipt">
       ${businessLogo?`<div style="text-align:center;margin-bottom:6px"><img src="${businessLogo}" style="max-height:50px;max-width:160px"></div>`:''}
@@ -3616,9 +3660,19 @@ function showReceipt(id){
       <div class="r-row"><span>Método:</span><span><strong>${metodo}</strong></span></div>
       <div class="r-row"><span>Estado equipo:</span><span>${c.estado.toUpperCase()}</span></div>
       <hr class="r-sep">
+      <div style="text-align:center;margin-top:8px">
+        <div id="receipt-qr" style="display:inline-block;padding:6px;background:#fff;border-radius:6px"></div>
+        <div style="font-size:9.5px;margin-top:4px;letter-spacing:.2px">Escanea para ver el estado de tu reparación</div>
+      </div>
       <div class="r-foot">¡Gracias por su preferencia!<br>${businessName||'JJ Electronic Repair'}</div>
     </div>`;
   openModal('modal-rec');
+  document.getElementById('receipt-qr').innerHTML='';
+  new QRCode(document.getElementById('receipt-qr'),{
+    text:trackUrl, width:110, height:110,
+    colorDark:'#000000', colorLight:'#ffffff',
+    correctLevel:QRCode.CorrectLevel.M
+  });
 }
 function enviarReciboWA(){
   const c=casos.find(x=>x.id===currentReceiptCasoId);if(!c)return;
@@ -3662,6 +3716,10 @@ function enviarReciboWA(){
   if(c.tipoPago) msg+=`🏦 *Método:* ${metodo}\n`;
   msg+=`⚙️ *Estado equipo:* ${c.estado.toUpperCase()}\n`;
   msg+=`${linea}\n`;
+  if(c.trackingCode){
+    msg+=`🔗 *Sigue tu reparación aquí:*\n${trackingURL(c.trackingCode)}\n`;
+    msg+=`${linea}\n`;
+  }
   msg+=`¡Gracias por su preferencia! 🙏\n_${businessName||'JJ Electronic Repair'}_`;
   const tel=fmtTelWA(cl.tel||'');
   if(!tel){alert('⚠️ El cliente no tiene teléfono registrado');return}

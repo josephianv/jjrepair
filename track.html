@@ -188,7 +188,7 @@ function fmtFecha(f){
   return `${parseInt(d)} de ${meses[parseInt(m)-1]}, ${y}`;
 }
 
-let CASO=null, CLIENTE=null;
+let CASO=null;
 
 async function init(){
   try{
@@ -203,19 +203,14 @@ async function init(){
     if(!firebase.apps.length) firebase.initializeApp(cfg);
     const db=firebase.firestore();
 
-    const snap=await db.collection('jjrepair_casos').where('trackingCode','==',code).limit(1).get();
-    if(snap.empty){ showState('s-notfound'); return; }
+    // Lee SOLO el documento espejo público (jjrepair_tracking/{code}).
+    // Nunca toca jjrepair_casos ni jjrepair_clientes directamente —
+    // esas colecciones permanecen 100% privadas.
+    const snap=await db.collection('jjrepair_tracking').doc(code).get();
+    if(!snap.exists){ showState('s-notfound'); return; }
 
-    CASO=snap.docs[0].data();
-
-    if(CASO.cid){
-      const clSnap=await db.collection('jjrepair_clientes').doc(String(CASO.cid)).get();
-      CLIENTE = clSnap.exists ? clSnap.data() : {nombre:'Cliente',tel:''};
-    } else {
-      CLIENTE = {nombre:'Cliente',tel:''};
-    }
-
-    render(CASO, CLIENTE);
+    CASO=snap.data();
+    render(CASO);
     showState('s-content');
   }catch(err){
     console.error(err);
@@ -223,9 +218,10 @@ async function init(){
   }
 }
 
-function render(c, cl){
+function render(c){
+  document.getElementById('bizName').textContent = '🔧 ' + (c.businessName || 'JJ Electronic Repair');
   document.getElementById('c-modelo').textContent = `${TIPO_ICON[c.tipo]||'🔌'} ${c.modelo||'Equipo'}`;
-  document.getElementById('c-num').textContent = c.id ? `Caso #${String(c.id).slice(-4).toUpperCase()}` : '';
+  document.getElementById('c-num').textContent = c.trackingCode ? `Ref. ${c.trackingCode.slice(-6)}` : '';
 
   const estIdx = ESTADOS.indexOf(c.estado);
   const badge = document.getElementById('c-badge');
@@ -239,7 +235,7 @@ function render(c, cl){
     return `<div class="step ${cls}"><div class="dot">${i<curPos?'✓':(i+1)}</div><div class="lbl">${ESTADO_LABEL[s].split(' ')[0]}</div></div>`;
   }).join('');
 
-  document.getElementById('c-cliente').textContent = cl.nombre || 'Cliente';
+  document.getElementById('c-cliente').textContent = c.clienteNombre || 'Cliente';
   document.getElementById('c-equipo').textContent = c.modelo || '—';
   if(c.serial){
     document.getElementById('row-serial').style.display='flex';
@@ -274,6 +270,8 @@ function render(c, cl){
       `<img src="${f}" onclick="verFoto('${f.replace(/'/g,"\\'")}')" loading="lazy">`
     ).join('');
   }
+
+  document.getElementById('c-foot').textContent = c.businessName || 'JJ Electronic Repair';
 }
 
 function verFoto(src){
@@ -289,7 +287,7 @@ function copiarEnlace(){
 
 function compartirWA(){
   if(!CASO) return;
-  const nombre=(CLIENTE.nombre||'').split(' ')[0]||'';
+  const nombre=(CASO.clienteNombre||'').split(' ')[0]||'';
   const msg=`Hola ${nombre} 👋 Aquí puedes ver el estado de tu reparación (${CASO.modelo}):\n${location.href}`;
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
 }
