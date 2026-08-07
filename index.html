@@ -58,6 +58,16 @@ body.light .fg input,body.light .fg select,body.light .fg textarea{border:1px so
 body.dark .fg input,body.dark .fg select,body.dark .fg textarea{border:1px solid #444;color:#e0e0e0;background:#2a2a2a}
 body.light .fg input:focus,body.light .fg select:focus{border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.15)}
 body.dark .fg input:focus,body.dark .fg select:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.15)}
+/* Pago dividido (venta): grid fijo para que método / monto / borrar
+   queden alineados en columna, sin importar cuántas filas haya */
+.split-row{display:grid;grid-template-columns:1fr 92px 34px;gap:6px;align-items:center;margin-bottom:6px}
+.split-row select,.split-row input{height:34px;padding:0 8px;font-size:12px;border-radius:6px;outline:none;transition:border .2s}
+.split-row input{text-align:right}
+body.light .split-row select,body.light .split-row input{border:1px solid #ccd8e8;color:#1a3a5c;background:#f8fafc}
+body.dark .split-row select,body.dark .split-row input{border:1px solid #444;color:#e0e0e0;background:#2a2a2a}
+body.light .split-row select:focus,body.light .split-row input:focus{border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.15)}
+body.dark .split-row select:focus,body.dark .split-row input:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.15)}
+.split-row .xb.d{height:34px;width:34px;padding:0;justify-content:center}
 .fg textarea{resize:vertical;min-height:64px}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
 .fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px}
@@ -2721,14 +2731,14 @@ function updateSplitPago(i,field,val){
 function renderSplitPagos(){
   const el=document.getElementById('venta-split-list');if(!el)return;
   el.innerHTML=ventaSplit.map((p,i)=>`
-    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-      <select onchange="updateSplitPago(${i},'metodo',this.value)" style="flex:1;font-size:12px;padding:6px 8px;border:1px solid #ccd8e8;border-radius:5px">
+    <div class="split-row">
+      <select onchange="updateSplitPago(${i},'metodo',this.value)">
         <option value="cash"${p.metodo==='cash'?' selected':''}>💵 Cash</option>
         <option value="ath"${p.metodo==='ath'?' selected':''}>💳 ATH</option>
         <option value="ath-movil"${p.metodo==='ath-movil'?' selected':''}>📱 ATH Móvil</option>
       </select>
-      <input type="number" min="0" step="0.01" value="${p.monto||''}" placeholder="0.00" oninput="updateSplitPago(${i},'monto',this.value)" style="width:85px;font-size:12px;padding:6px 8px;border:1px solid #ccd8e8;border-radius:5px">
-      ${ventaSplit.length>1?`<button type="button" class="xb d" style="padding:6px 9px" onclick="removeSplitPago(${i})">🗑</button>`:''}
+      <input type="number" min="0" step="0.01" value="${p.monto||''}" placeholder="0.00" oninput="updateSplitPago(${i},'monto',this.value)">
+      ${ventaSplit.length>1?`<button type="button" class="xb d" onclick="removeSplitPago(${i})">🗑</button>`:''}
     </div>`).join('');
   renderSplitStatus();
 }
