@@ -15,6 +15,11 @@
 <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
 
+<!-- Tipografía: Space Grotesk (títulos, técnica/geométrica), Inter (texto), JetBrains Mono (precios/seriales/códigos — lectura tipo multímetro) -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+
 <!-- Firebase SDK (sincronización en la nube + soporte offline automático) -->
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -27,15 +32,32 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
+:root{
+  /* Base navy — la marca ya existía en azul/blanco; se profundiza y refina */
+  --ink-950:#0a1626; --ink-900:var(--ink-900); --ink-800:#123159; --ink-700:var(--ink-700);
+  --blue-600:#1668c7; --blue-500:#2f7fdb; --blue-hover:#0C447C;
+  /* Acentos de firma: "señal" (cian diagnóstico) + "soldadura" (ámbar) */
+  --signal:#22c3b6; --signal-glow:rgba(34,195,182,.35);
+  --solder:#f2a93c;
+  /* Superficies */
+  --paper:#f5f8fc; --line-light:#d8e3f0; --line-dark:#333;
+  /* Tipografía */
+  --font-display:'Space Grotesk',-apple-system,sans-serif;
+  --font-body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,'Courier New',monospace;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;transition:background .3s,color .3s}
-body.light{background:#0f2840;color:#1a3a5c}
+body{font-family:var(--font-body);min-height:100vh;transition:background .3s,color .3s}
+h1,h2,h3,.login-logo h1,.mhead h2,.brand-name,.htile span,.r-title{font-family:var(--font-display)}
+/* Números/datos técnicos: precios, seriales, tracking codes, stat numbers */
+.sbox .n,.r-total,.money,code,.qr-code-txt,#qr-code-txt{font-family:var(--font-mono)}
+body.light{background:var(--ink-900);color:var(--ink-700)}
 body.dark{background:#111;color:#e0e0e0}
 .hide{display:none!important}
 
 /* LOGIN */
 .login-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center}
-body.light .login-wrap{background:radial-gradient(circle at 30% 20%,#16365a,#0a1e30 70%)}
+body.light .login-wrap{background:radial-gradient(circle at 30% 20%,var(--ink-800),var(--ink-950) 70%)}
 body.dark .login-wrap{background:#111}
 .login-box{border-radius:14px;padding:34px 32px;width:320px;box-shadow:0 20px 50px rgba(0,0,0,.45)}
 body.light .login-box{background:#fff}
@@ -43,7 +65,7 @@ body.dark .login-box{background:#1e1e1e;border:1px solid #333}
 .login-logo{text-align:center;margin-bottom:24px}
 .login-logo .icon{font-size:42px;margin-bottom:8px;filter:drop-shadow(0 2px 6px rgba(24,95,165,.3))}
 .login-logo h1{font-size:19px;font-weight:700;letter-spacing:-.2px}
-body.light .login-logo h1{color:#1a3a5c}
+body.light .login-logo h1{color:var(--ink-700)}
 body.dark .login-logo h1{color:#e0e0e0}
 .login-logo p{font-size:12px;color:#888;margin-top:4px}
 .login-err{background:#FCEBEB;color:#791F1F;border-radius:7px;padding:9px 12px;font-size:13px;margin-bottom:12px;display:none}
@@ -54,19 +76,19 @@ body.dark .login-logo h1{color:#e0e0e0}
 body.light .fg label{color:#4a6080}
 body.dark .fg label{color:#aaa}
 .fg input,.fg select,.fg textarea{font-size:13px;padding:8px 10px;border-radius:6px;width:100%;outline:none;transition:border .2s}
-body.light .fg input,body.light .fg select,body.light .fg textarea{border:1px solid #ccd8e8;color:#1a3a5c;background:#f8fafc}
+body.light .fg input,body.light .fg select,body.light .fg textarea{border:1px solid var(--line-light);color:var(--ink-700);background:var(--paper)}
 body.dark .fg input,body.dark .fg select,body.dark .fg textarea{border:1px solid #444;color:#e0e0e0;background:#2a2a2a}
-body.light .fg input:focus,body.light .fg select:focus{border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.15)}
-body.dark .fg input:focus,body.dark .fg select:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.15)}
+body.light .fg input:focus,body.light .fg select:focus{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-glow)}
+body.dark .fg input:focus,body.dark .fg select:focus{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-glow)}
 /* Pago dividido (venta): grid fijo para que método / monto / borrar
    queden alineados en columna, sin importar cuántas filas haya */
 .split-row{display:grid;grid-template-columns:1fr 92px 34px;gap:6px;align-items:center;margin-bottom:6px}
 .split-row select,.split-row input{height:34px;padding:0 8px;font-size:12px;border-radius:6px;outline:none;transition:border .2s}
 .split-row input{text-align:right}
-body.light .split-row select,body.light .split-row input{border:1px solid #ccd8e8;color:#1a3a5c;background:#f8fafc}
+body.light .split-row select,body.light .split-row input{border:1px solid var(--line-light);color:var(--ink-700);background:var(--paper)}
 body.dark .split-row select,body.dark .split-row input{border:1px solid #444;color:#e0e0e0;background:#2a2a2a}
-body.light .split-row select:focus,body.light .split-row input:focus{border-color:#185FA5;box-shadow:0 0 0 2px rgba(24,95,165,.15)}
-body.dark .split-row select:focus,body.dark .split-row input:focus{border-color:#4a90d9;box-shadow:0 0 0 2px rgba(74,144,217,.15)}
+body.light .split-row select:focus,body.light .split-row input:focus{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-glow)}
+body.dark .split-row select:focus,body.dark .split-row input:focus{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-glow)}
 .split-row .xb.d{height:34px;width:34px;padding:0;justify-content:center}
 .fg textarea{resize:vertical;min-height:64px}
 .fg2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
@@ -75,9 +97,10 @@ body.dark .split-row select:focus,body.dark .split-row input:focus{border-color:
 
 /* APP SHELL */
 .app{display:flex;flex-direction:column;min-height:100vh}
-.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:44px;flex-shrink:0}
-body.light .topbar{background:linear-gradient(135deg,#0f2840,#143352);border-bottom:2px solid #0a1e30;box-shadow:0 2px 8px rgba(0,0,0,.15)}
-body.dark .topbar{background:#1a1a1a;border-bottom:2px solid #000}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:44px;flex-shrink:0;position:relative}
+body.light .topbar{background:linear-gradient(135deg,var(--ink-900),#143352);box-shadow:0 2px 8px rgba(0,0,0,.15)}
+body.dark .topbar{background:#1a1a1a}
+.topbar::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,var(--signal),var(--blue-500) 55%,transparent)}
 .brand{display:flex;align-items:center;gap:10px}
 .brand-name{color:#fff;font-size:14px;font-weight:600;letter-spacing:.2px}
 .brand-sub{color:#85B7EB;font-size:11px;margin-left:4px}
@@ -91,11 +114,11 @@ body.dark .topbar{background:#1a1a1a;border-bottom:2px solid #000}
 .lang-btn:hover{background:rgba(255,255,255,.22)}
 
 .menubar{display:flex;align-items:center;gap:2px;padding:0 10px;height:40px;flex-shrink:0;overflow-x:auto}
-body.light .menubar{background:#1e4a7a;border-bottom:1px solid #0f2840}
+body.light .menubar{background:#1e4a7a;border-bottom:1px solid var(--ink-900)}
 body.dark .menubar{background:#222;border-bottom:1px solid #000}
 .mnu{color:#c8dff5;font-size:12px;padding:0 12px;height:100%;display:flex;align-items:center;cursor:pointer;border-radius:5px;gap:4px;white-space:nowrap;transition:background .15s,color .15s}
 .mnu:hover{background:rgba(255,255,255,.12);color:#fff}
-body.light .mnu.act{background:#185FA5;color:#fff}
+body.light .mnu.act{background:var(--blue-600);color:#fff}
 body.dark .mnu.act{background:#2a5a96;color:#fff}
 
 .main{flex:1;overflow-y:auto}
@@ -124,7 +147,7 @@ body.dark .sec-bar{background:#1a1a1a;border-bottom:1px solid #333}
 body.light .toolbar{background:#2a5a96}
 body.dark .toolbar{background:#222;border-bottom:1px solid #333}
 .tbtn{border:none;border-radius:6px;padding:7px 13px;font-size:12px;cursor:pointer;display:flex;align-items:center;gap:5px;font-weight:500;transition:transform .12s,box-shadow .12s,opacity .12s}
-body.light .tbtn{background:#fff;color:#1a3a5c;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+body.light .tbtn{background:#fff;color:var(--ink-700);box-shadow:0 1px 2px rgba(0,0,0,.08)}
 body.dark .tbtn{background:#333;color:#e0e0e0}
 .tbtn:hover{opacity:.9;transform:translateY(-1px)}
 .tbtn:active{transform:translateY(0)}
@@ -134,13 +157,13 @@ body.dark .tbtn{background:#333;color:#e0e0e0}
 body.light .sbar{background:#fff;border-bottom:1px solid #e0e8f0}
 body.dark .sbar{background:#1e1e1e;border-bottom:1px solid #333}
 .sbar input{flex:1;min-width:160px;font-size:13px;padding:8px 11px;border-radius:7px;outline:none;transition:border-color .15s,box-shadow .15s}
-body.light .sbar input{border:1px solid #ccd8e8;color:#1a3a5c;background:#f8fafc}
+body.light .sbar input{border:1px solid var(--line-light);color:var(--ink-700);background:var(--paper)}
 body.dark .sbar input{border:1px solid #444;color:#e0e0e0;background:#2a2a2a}
-.sbar input:focus{border-color:#185FA5;box-shadow:0 0 0 3px rgba(24,95,165,.12)}
+.sbar input:focus{border-color:var(--signal);box-shadow:0 0 0 3px var(--signal-glow)}
 .sbar select{font-size:12px;padding:8px 10px;border-radius:7px;outline:none;cursor:pointer;transition:border-color .15s}
-body.light .sbar select{border:1px solid #ccd8e8;color:#1a3a5c;background:#f8fafc}
+body.light .sbar select{border:1px solid var(--line-light);color:var(--ink-700);background:var(--paper)}
 body.dark .sbar select{border:1px solid #444;color:#e0e0e0;background:#2a2a2a}
-.sbar select:focus{border-color:#185FA5}
+.sbar select:focus{border-color:var(--blue-600)}
 
 /* PANEL CARD */
 .panel{padding:16px}
@@ -148,16 +171,16 @@ body.dark .sbar select{border:1px solid #444;color:#e0e0e0;background:#2a2a2a}
 body.light .pcard{background:#fff;border:1px solid #dde6f0;box-shadow:0 2px 8px rgba(15,40,64,.05)}
 body.dark .pcard{background:#1e1e1e;border:1px solid #333}
 .phead{padding:12px 16px;color:#fff;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px;letter-spacing:.2px}
-body.light .phead{background:linear-gradient(135deg,#1e4a7a,#185FA5)}
+body.light .phead{background:linear-gradient(135deg,#1e4a7a,var(--blue-600))}
 body.dark .phead{background:#0d2137}
 
 /* TABLE */
 .tbl{width:100%;font-size:12px;border-collapse:collapse;table-layout:fixed}
 .tbl th{font-weight:600;padding:9px 10px;text-align:left;border-bottom:1px solid;font-size:11px;white-space:nowrap;letter-spacing:.2px}
-body.light .tbl th{background:#e8f0fa;color:#1a3a5c;border-color:#ccd8e8}
+body.light .tbl th{background:#e8f0fa;color:var(--ink-700);border-color:var(--line-light)}
 body.dark .tbl th{background:#252525;color:#bbb;border-color:#333}
 .tbl td{padding:9px 10px;border-bottom:0.5px solid;vertical-align:middle;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:background .12s}
-body.light .tbl td{border-color:#e0e8f0;color:#1a3a5c}
+body.light .tbl td{border-color:#e0e8f0;color:var(--ink-700)}
 body.dark .tbl td{border-color:#2a2a2a;color:#ccc}
 .tbl tr:last-child td{border-bottom:none}
 body.light .tbl tr:hover td{background:#f5f8fc}
@@ -165,7 +188,7 @@ body.dark .tbl tr:hover td{background:#252525}
 .ab{display:flex;gap:5px;flex-wrap:wrap}
 .tbl td.ab-cell{overflow:visible;white-space:normal}
 .xb{padding:6px 10px;border-radius:8px;font-size:11px;cursor:pointer;display:flex;align-items:center;gap:3px;white-space:nowrap;transition:transform .12s cubic-bezier(.2,.8,.2,1),opacity .12s,box-shadow .12s,background .12s;font-weight:600}
-body.light .xb{border:1px solid #d5e0ec;background:#fff;color:#1a3a5c}
+body.light .xb{border:1px solid #d5e0ec;background:#fff;color:var(--ink-700)}
 body.dark .xb{border:1px solid #444;background:#2a2a2a;color:#ccc}
 body.light .xb:hover{opacity:1;background:#eef4fb;border-color:#b9cde3;transform:translateY(-1px);box-shadow:0 3px 8px rgba(15,40,64,.1)}
 body.dark .xb:hover{opacity:1;background:#333;transform:translateY(-1px)}
@@ -179,12 +202,12 @@ body.light .xb.g:hover{background:#EAF3DE}
 
 /* CLIENT CARDS (mobile) */
 .cli-card{border-radius:14px;padding:14px 16px;margin-bottom:12px;transition:box-shadow .15s}
-body.light .cli-card{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
+body.light .cli-card{background:#fff;border:1px solid var(--line-light);box-shadow:0 1px 3px rgba(15,40,64,.06)}
 body.dark .cli-card{background:#1e1e1e;border:1px solid #333}
 .cli-card-top{display:flex;align-items:center;gap:10px;margin-bottom:12px}
 .cli-card-info{flex:1;min-width:0}
 .cli-card-name{font-size:14px;font-weight:600}
-body.light .cli-card-name{color:#1a3a5c}
+body.light .cli-card-name{color:var(--ink-700)}
 body.dark .cli-card-name{color:#e0e0e0}
 .cli-card-sub{font-size:12px;opacity:.7;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cli-card-actions{display:flex;gap:6px}
@@ -208,7 +231,7 @@ body.dark .gasto-split>div{background:#242424;border:1px solid #333}
 
 /* Combined transaction cards (Historial modal, mobile) */
 .tx-card{border-radius:12px;padding:12px 14px;margin:10px 14px}
-body.light .tx-card{background:#fff;border:1px solid #ccd8e8}
+body.light .tx-card{background:#fff;border:1px solid var(--line-light)}
 body.dark .tx-card{background:#1e1e1e;border:1px solid #333}
 .tx-card-top{display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600;margin-bottom:2px}
 .tx-card-sub{font-size:11px;opacity:.65;margin-bottom:8px}
@@ -220,12 +243,12 @@ body.dark .tx-card-credito{background:#2a2412}
 
 /* REPAIR CARDS (mobile) */
 .caso-card{border-radius:14px;padding:14px 16px;margin-bottom:12px}
-body.light .caso-card{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
+body.light .caso-card{background:#fff;border:1px solid var(--line-light);box-shadow:0 1px 3px rgba(15,40,64,.06)}
 body.dark .caso-card{background:#1e1e1e;border:1px solid #333}
 .caso-card-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
 .caso-card-precio{font-size:14px;font-weight:700}
 .caso-card-equipo{font-size:13px;font-weight:600;margin-bottom:4px}
-body.light .caso-card-equipo{color:#1a3a5c}
+body.light .caso-card-equipo{color:var(--ink-700)}
 body.dark .caso-card-equipo{color:#e0e0e0}
 .caso-card-cliente{font-size:12px;opacity:.75;margin-bottom:8px}
 .caso-card-badges{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
@@ -234,12 +257,12 @@ body.dark .caso-card-equipo{color:#e0e0e0}
 
 /* INVENTORY CARDS (mobile) */
 .inv-card{border-radius:14px;padding:14px 16px;margin-bottom:12px}
-body.light .inv-card{background:#fff;border:1px solid #ccd8e8;box-shadow:0 1px 3px rgba(15,40,64,.06)}
+body.light .inv-card{background:#fff;border:1px solid var(--line-light);box-shadow:0 1px 3px rgba(15,40,64,.06)}
 body.dark .inv-card{background:#1e1e1e;border:1px solid #333}
 .inv-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:10px}
 .inv-card-info{min-width:0}
 .inv-card-name{font-size:13px;font-weight:600}
-body.light .inv-card-name{color:#1a3a5c}
+body.light .inv-card-name{color:var(--ink-700)}
 body.dark .inv-card-name{color:#e0e0e0}
 .inv-card-sub{font-size:11px;opacity:.6;margin-top:2px}
 .inv-card-mid{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-top:1px solid rgba(128,128,128,.15);border-bottom:1px solid rgba(128,128,128,.15);margin-bottom:10px}
@@ -249,18 +272,18 @@ body.dark .inv-card-name{color:#e0e0e0}
 
 /* CART CARDS (mobile, Vender screen) */
 .cart-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
-body.light .cart-card{background:#fff;border:1px solid #ccd8e8}
+body.light .cart-card{background:#fff;border:1px solid var(--line-light)}
 body.dark .cart-card{background:#1e1e1e;border:1px solid #333}
 .cart-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
 .cart-card-name{font-size:13px;font-weight:600;flex:1;min-width:0}
 .cart-card-bottom{display:flex;align-items:center;gap:10px;font-size:12px;flex-wrap:wrap}
 .cart-card-bottom label{display:flex;align-items:center;gap:6px;opacity:.8}
-.cart-card-bottom input{width:52px;font-size:12px;padding:4px 6px;border:1px solid #ccd8e8;border-radius:4px}
+.cart-card-bottom input{width:52px;font-size:12px;padding:4px 6px;border:1px solid var(--line-light);border-radius:4px}
 .cart-card-bottom strong{margin-left:auto;font-size:13px}
 
 /* SALES HISTORY CARDS (mobile) */
 .venta-card{border-radius:12px;padding:12px 14px;margin-bottom:10px}
-body.light .venta-card{background:#fff;border:1px solid #ccd8e8}
+body.light .venta-card{background:#fff;border:1px solid var(--line-light)}
 body.dark .venta-card{background:#1e1e1e;border:1px solid #333}
 .venta-card-top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px;font-size:12px}
 .venta-card-mid{font-size:12px;opacity:.75;margin-bottom:8px}
@@ -273,10 +296,15 @@ body.dark .venta-card{background:#1e1e1e;border:1px solid #333}
 .el{background:#EAF3DE;color:#27500A}.ee{background:#e8e8e8;color:#555}
 .epi{background:#FDE9D9;color:#7A3B00}.edb{background:#F3E0FB;color:#5B1B7A}
 .pp{background:#FCEBEB;color:#791F1F}.pg{background:#EAF3DE;color:#27500A}.pa{background:#FAEEDA;color:#633806}
+/* "En proceso" lleva un punto tipo LED pulsante — señal de actividad en vivo */
+.ep{display:inline-flex;align-items:center;gap:5px}
+.ep::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--signal);box-shadow:0 0 0 var(--signal-glow);animation:led-pulse 1.8s ease-in-out infinite}
+@keyframes led-pulse{0%,100%{box-shadow:0 0 0 0 var(--signal-glow)}50%{box-shadow:0 0 0 4px var(--signal-glow)}}
+@media(prefers-reduced-motion:reduce){.ep::before{animation:none}}
 
 /* STATS */
 .stats-r{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;padding:16px}
-body.light .stats-r{background:#e4edf7;border-color:#ccd8e8}
+body.light .stats-r{background:#e4edf7;border-color:var(--line-light)}
 body.dark .stats-r{background:#161616;border-color:#333}
 .sbox{border-radius:14px;border:1px solid;padding:16px 12px;text-align:center;transition:transform .18s cubic-bezier(.2,.8,.2,1),box-shadow .18s;position:relative;overflow:hidden}
 body.light .sbox{background:#fff;border-color:#dbe4ef;box-shadow:0 1px 2px rgba(15,40,64,.04)}
@@ -297,7 +325,7 @@ body.dark .sbox .l{color:#888}
 body.light .htile{background:#fff;border-color:#e2e9f2;box-shadow:0 1px 2px rgba(15,40,64,.04)}
 body.dark .htile{background:#1e1e1e;border-color:#333}
 body.light .htile:hover{background:#fff;border-color:#85B7EB;box-shadow:0 14px 28px -10px rgba(24,95,165,.28)}
-body.dark .htile:hover{background:#252525;border-color:#4a90d9;box-shadow:0 14px 28px -10px rgba(0,0,0,.6)}
+body.dark .htile:hover{background:#252525;border-color:var(--blue-500);box-shadow:0 14px 28px -10px rgba(0,0,0,.6)}
 .htile:hover{transform:translateY(-4px) scale(1.015)}
 .htile:active{transform:translateY(-1px) scale(1)}
 .htile.htile-venta{border-width:2px}
@@ -314,11 +342,11 @@ body.dark .htile .ticon{background:#2a2a2a}
 body.dark .htile.htile-venta .ticon{background:#20351a}
 .htile:hover .ticon{transform:scale(1.08)}
 .htile span{font-size:12px;font-weight:700;text-align:center;letter-spacing:.1px}
-body.light .htile span{color:#1a3a5c}
+body.light .htile span{color:var(--ink-700)}
 body.dark .htile span{color:#ccc}
 
 /* BUTTONS */
-.btn-b{background:#185FA5;color:#fff;border:none;border-radius:9px;padding:10px 18px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;transition:background .15s,transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .15s}
+.btn-b{background:var(--blue-600);color:#fff;border:none;border-radius:9px;padding:10px 18px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-weight:600;transition:background .15s,transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .15s}
 body.light .btn-b{box-shadow:0 2px 6px rgba(24,95,165,.3)}
 .btn-b:hover{background:#0C447C;transform:translateY(-1px);box-shadow:0 6px 14px rgba(24,95,165,.35)}
 .btn-b:active{transform:translateY(0)}
@@ -326,7 +354,7 @@ body.light .btn-b{box-shadow:0 2px 6px rgba(24,95,165,.3)}
 .btn-g:hover{background:#27500A;transform:translateY(-1px);box-shadow:0 6px 14px rgba(39,80,10,.3)}
 .btn-g:active{transform:translateY(0)}
 .btn-o{border-radius:9px;padding:10px 16px;font-size:13px;cursor:pointer;font-weight:600;border:1px solid;transition:opacity .15s,transform .12s cubic-bezier(.2,.8,.2,1),box-shadow .15s}
-body.light .btn-o{background:#fff;color:#1a3a5c;border-color:#ccd8e8}
+body.light .btn-o{background:#fff;color:var(--ink-700);border-color:var(--line-light)}
 body.dark .btn-o{background:#2a2a2a;color:#e0e0e0;border-color:#444}
 .btn-o:hover{opacity:.85;transform:translateY(-1px);box-shadow:0 4px 10px rgba(0,0,0,.08)}
 .btn-o:active{transform:translateY(0)}
@@ -340,7 +368,7 @@ body.dark .btn-o{background:#2a2a2a;color:#e0e0e0;border-color:#444}
 body.light .modal{background:#fff}
 body.dark .modal{background:#1e1e1e;border:1px solid #333}
 .mhead{padding:13px 16px;color:#fff;display:flex;align-items:center;justify-content:space-between;border-radius:10px 10px 0 0}
-body.light .mhead{background:linear-gradient(135deg,#1e4a7a,#185FA5)}
+body.light .mhead{background:linear-gradient(135deg,#1e4a7a,var(--blue-600))}
 body.dark .mhead{background:#0d2137}
 .mhead h2{font-size:14px;font-weight:600;display:flex;align-items:center;gap:6px;letter-spacing:.2px}
 .mclose{background:none;border:none;color:#85B7EB;cursor:pointer;font-size:22px;line-height:1;transition:opacity .15s,transform .15s}
@@ -353,7 +381,7 @@ body.dark .mfoot{background:#161616;border-color:#333}
 /* NOTES */
 .note-tag{display:inline-flex;align-items:center;gap:4px;border-radius:5px;padding:4px 9px;font-size:12px;margin:3px}
 body.light .note-tag{background:#E6F1FB;color:#0C447C}
-body.dark .note-tag{background:#1a3a5c;color:#85B7EB}
+body.dark .note-tag{background:var(--ink-700);color:#85B7EB}
 .note-del{cursor:pointer;opacity:.6;background:none;border:none;font-size:14px;line-height:1;padding:0}
 body.light .note-del{color:#0C447C}
 body.dark .note-del{color:#85B7EB}
@@ -376,34 +404,38 @@ body.dark .det-l{color:#888}
 .det-v{font-weight:700;text-align:right}
 body.dark .det-v{color:#e0e0e0}
 .est-btn{padding:5px 12px;border-radius:10px;border:1px solid;font-size:12px;cursor:pointer;transition:all .15s}
-body.light .est-btn{border-color:#ccd8e8;background:#fff;color:#1a3a5c}
+body.light .est-btn{border-color:var(--line-light);background:#fff;color:var(--ink-700)}
 body.dark .est-btn{border-color:#444;background:#2a2a2a;color:#ccc}
-.est-btn.sel{background:#185FA5!important;color:#fff!important;border-color:#185FA5!important}
+.est-btn.sel{background:var(--blue-600)!important;color:#fff!important;border-color:var(--blue-600)!important}
 
 /* PHOTOS */
 .photo-grid{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px}
 .photo-item{position:relative;width:80px;height:80px}
 .photo-thumb{width:80px;height:80px;border-radius:6px;object-fit:cover;border:2px solid;cursor:pointer;display:block}
-body.light .photo-thumb{border-color:#ccd8e8}
+body.light .photo-thumb{border-color:var(--line-light)}
 body.dark .photo-thumb{border-color:#444}
-.photo-thumb:hover{border-color:#185FA5}
+.photo-thumb:hover{border-color:var(--blue-600)}
 .photo-del{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;background:#A32D2D;color:#fff;border:2px solid #fff;font-size:11px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0}
 body.dark .photo-del{border-color:#1e1e1e}
 .photo-del:hover{background:#791F1F}
 .photo-add{width:80px;height:80px;border-radius:6px;border:2px dashed;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-direction:column;gap:4px;font-size:11px}
-body.light .photo-add{border-color:#ccd8e8;color:#4a6080;background:#f8fafc}
+body.light .photo-add{border-color:var(--line-light);color:#4a6080;background:var(--paper)}
 body.dark .photo-add{border-color:#444;color:#888;background:#252525}
-.photo-add:hover{border-color:#185FA5;color:#185FA5}
+.photo-add:hover{border-color:var(--blue-600);color:var(--blue-600)}
 
 /* RECEIPT */
 .receipt{font-family:'Courier New',monospace;font-size:12px;padding:18px;border-radius:6px;max-width:340px;margin:0 auto}
-body.light .receipt{color:#1a3a5c;background:#fff;border:1px dashed #999}
+body.light .receipt{color:var(--ink-700);background:#fff;border:1px dashed #999}
 body.dark .receipt{color:#e0e0e0;background:#1a1a1a;border:1px dashed #555}
 .r-title{text-align:center;font-size:15px;font-weight:700;margin-bottom:3px}
+/* Separador "traza de circuito": línea punteada tipo PCB con puntos (vías) en los extremos */
+.r-sep{border:none;height:1px;margin:9px 2px;position:relative;background-image:repeating-linear-gradient(90deg,currentColor 0 5px,transparent 5px 9px);opacity:.4}
+.r-sep::before,.r-sep::after{content:'';position:absolute;top:50%;width:4px;height:4px;border-radius:50%;background:currentColor;transform:translateY(-50%)}
+.r-sep::before{left:-2px}
+.r-sep::after{right:-2px}
+body.light .r-sep{color:var(--ink-700)}
+body.dark .r-sep{color:#888}
 .r-sub{text-align:center;font-size:11px;color:#888;margin-bottom:10px}
-.r-sep{border:none;border-top:1px dashed;margin:7px 0}
-body.light .r-sep{border-color:#999}
-body.dark .r-sep{border-color:#555}
 .r-row{display:flex;justify-content:space-between;margin:3px 0;font-size:12px}
 .r-total{display:flex;justify-content:space-between;font-weight:700;font-size:14px;margin:5px 0}
 .r-foot{text-align:center;font-size:11px;color:#888;margin-top:10px}
@@ -413,7 +445,7 @@ body.dark .r-sep{border-color:#555}
 
 /* STATUS */
 .statusbar{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:26px;flex-shrink:0}
-body.light .statusbar{background:#0a1e30}
+body.light .statusbar{background:var(--ink-950)}
 body.dark .statusbar{background:#111;border-top:1px solid #222}
 .statusbar span{color:#85B7EB;font-size:11px}
 
@@ -437,7 +469,7 @@ body.dark .empty{color:#777}
 /* DARK MODE TOGGLE */
 .toggle-wrap{display:flex;align-items:center;gap:10px}
 .toggle{width:44px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background .3s}
-.toggle.on{background:#185FA5}
+.toggle.on{background:var(--blue-600)}
 .toggle.off{background:#ccc}
 .toggle::after{content:'';position:absolute;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:left .3s}
 .toggle.on::after{left:23px}
@@ -446,24 +478,24 @@ body.dark .empty{color:#777}
 /* PRICE EDIT */
 .price-edit-row{display:flex;align-items:center;gap:8px}
 .price-edit-row input{width:100px;font-size:14px;font-weight:600;padding:5px 8px;border-radius:5px}
-body.light .price-edit-row input{border:1px solid #ccd8e8;color:#1a3a5c;background:#f8fafc}
+body.light .price-edit-row input{border:1px solid var(--line-light);color:var(--ink-700);background:var(--paper)}
 body.dark .price-edit-row input{border:1px solid #444;color:#e0e0e0;background:#2a2a2a}
 
 /* TAX TOGGLE */
 .tax-toggle-row{display:flex;align-items:center;gap:10px;padding:10px 14px;border-top:1px solid rgba(0,0,0,.08)}
-body.light .tax-toggle-row{background:#f8fafc}
+body.light .tax-toggle-row{background:var(--paper)}
 body.dark .tax-toggle-row{background:#1a1a1a}
 .tax-label{font-size:12px;font-weight:500}
 body.light .tax-label{color:#4a6080}
 body.dark .tax-label{color:#aaa}
 .tax-val{font-size:13px;font-weight:600;margin-left:auto}
-body.light .tax-val{color:#1a3a5c}
+body.light .tax-val{color:var(--ink-700)}
 body.dark .tax-val{color:#e0e0e0}
 
 /* CASE NUMBER BADGE */
 .caso-num{display:inline-block;font-family:monospace;font-size:11px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:.5px}
-body.light .caso-num{background:#e8f0fa;color:#185FA5}
-body.dark .caso-num{background:#1a3a5c;color:#85B7EB}
+body.light .caso-num{background:#e8f0fa;color:var(--blue-600)}
+body.dark .caso-num{background:var(--ink-700);color:#85B7EB}
 
 /* PARTS */
 .part-row{display:flex;justify-content:space-between;align-items:center;padding:6px 14px;border-bottom:.5px solid;font-size:12px}
@@ -474,13 +506,13 @@ body.dark .part-row{border-color:#2a2a2a}
 /* TIMELINE */
 .tl{padding:12px 14px}
 .tl-item{display:flex;gap:10px;margin-bottom:10px;position:relative}
-.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;background:#185FA5}
+.tl-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:3px;background:var(--blue-600)}
 .tl-line{position:absolute;left:4px;top:13px;bottom:-10px;width:2px}
 body.light .tl-line{background:#e0e8f0}
 body.dark .tl-line{background:#333}
 .tl-item:last-child .tl-line{display:none}
 .tl-txt{font-size:12px;line-height:1.4}
-body.light .tl-txt{color:#1a3a5c}
+body.light .tl-txt{color:var(--ink-700)}
 body.dark .tl-txt{color:#ccc}
 .tl-ts{font-size:10px;opacity:.5;margin-top:2px}
 
@@ -560,7 +592,7 @@ body.dark .alert-banner.warn{background:#3a2a00;color:#FBBF24;border-color:#7a5a
 </style>
 </head>
 <body class="light">
-<div id="app-splash" style="position:fixed;inset:0;z-index:99999;background:#0f2840;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s ease">
+<div id="app-splash" style="position:fixed;inset:0;z-index:99999;background:var(--ink-900);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity .4s ease">
   <img src="icons/icon-192.png" style="width:80px;height:80px;border-radius:18px;box-shadow:0 4px 20px rgba(0,0,0,.4)">
   <div style="color:#fff;font-size:18px;font-weight:700;letter-spacing:.5px">JJ Electronic Repair</div>
   <div style="color:rgba(255,255,255,.6);font-size:13px">Cargando...</div>
@@ -612,8 +644,8 @@ function hideSplash(){const s=document.getElementById('app-splash');if(!s)return
       </div>
       <div style="padding:0 14px 14px">
         <div style="background:#f0f4fa;border-radius:8px;padding:14px;font-size:12px;line-height:1.8">
-          <p style="font-weight:700;margin-bottom:8px;color:#185FA5">Sigue estos pasos (5 minutos):</p>
-          <p>1️⃣ Abre <a href="https://console.firebase.google.com" target="_blank" style="color:#185FA5;font-weight:600">console.firebase.google.com</a> en otra pestaña</p>
+          <p style="font-weight:700;margin-bottom:8px;color:var(--blue-600)">Sigue estos pasos (5 minutos):</p>
+          <p>1️⃣ Abre <a href="https://console.firebase.google.com" target="_blank" style="color:var(--blue-600);font-weight:600">console.firebase.google.com</a> en otra pestaña</p>
           <p>2️⃣ Haz clic en <strong>"Crear un proyecto"</strong> → ponle el nombre de tu tienda</p>
           <p>3️⃣ Desactiva Google Analytics (no es necesario) → <strong>"Crear proyecto"</strong></p>
           <p>4️⃣ En el menú izquierdo → <strong>Build → Firestore Database</strong> → <strong>"Create database"</strong> → elige "Start in production mode" → selecciona cualquier ubicación → <strong>"Done"</strong></p>
@@ -700,8 +732,8 @@ service cloud.firestore {
   </div>
 </div>
 <style>
-.setup-dot{width:8px;height:8px;border-radius:50%;background:#ccd8e8;transition:background .3s}
-.setup-dot.active{background:#185FA5}
+.setup-dot{width:8px;height:8px;border-radius:50%;background:var(--line-light);transition:background .3s}
+.setup-dot.active{background:var(--blue-600)}
 </style>
 
 <div id="login-screen" class="login-wrap hide">
@@ -870,18 +902,18 @@ service cloud.firestore {
           <div class="pcard">
             <div class="phead">🔍 Agregar producto del inventario</div>
             <div style="padding:10px 12px;display:flex;gap:6px;flex-wrap:wrap">
-              <input type="text" id="venta-inp" list="venta-predict" placeholder="Buscar pieza o accesorio..." style="flex:2;min-width:180px;font-size:13px;padding:8px 10px;border:1px solid #ccd8e8;border-radius:5px;outline:none">
+              <input type="text" id="venta-inp" list="venta-predict" placeholder="Buscar pieza o accesorio..." style="flex:2;min-width:180px;font-size:13px;padding:8px 10px;border:1px solid var(--line-light);border-radius:5px;outline:none">
               <datalist id="venta-predict"></datalist>
-              <input type="number" id="venta-cant" min="1" step="1" value="1" style="width:65px;font-size:13px;padding:8px 10px;border:1px solid #ccd8e8;border-radius:5px;outline:none">
+              <input type="number" id="venta-cant" min="1" step="1" value="1" style="width:65px;font-size:13px;padding:8px 10px;border:1px solid var(--line-light);border-radius:5px;outline:none">
               <button class="btn-b" onclick="addCarrito()">➕ Agregar al carrito</button>
             </div>
           </div>
           <div class="pcard">
             <div class="phead">✏️ Item personalizado (no afecta inventario)</div>
             <div style="padding:10px 12px;display:flex;gap:6px;flex-wrap:wrap">
-              <input type="text" id="venta-libre-nombre" placeholder="Nombre del item o servicio" style="flex:2;min-width:160px;font-size:13px;padding:8px 10px;border:1px solid #ccd8e8;border-radius:5px;outline:none">
-              <input type="number" id="venta-libre-precio" placeholder="Precio" min="0" step="0.01" style="width:80px;font-size:13px;padding:8px 10px;border:1px solid #ccd8e8;border-radius:5px;outline:none">
-              <input type="number" id="venta-libre-cant" min="1" step="1" value="1" style="width:65px;font-size:13px;padding:8px 10px;border:1px solid #ccd8e8;border-radius:5px;outline:none">
+              <input type="text" id="venta-libre-nombre" placeholder="Nombre del item o servicio" style="flex:2;min-width:160px;font-size:13px;padding:8px 10px;border:1px solid var(--line-light);border-radius:5px;outline:none">
+              <input type="number" id="venta-libre-precio" placeholder="Precio" min="0" step="0.01" style="width:80px;font-size:13px;padding:8px 10px;border:1px solid var(--line-light);border-radius:5px;outline:none">
+              <input type="number" id="venta-libre-cant" min="1" step="1" value="1" style="width:65px;font-size:13px;padding:8px 10px;border:1px solid var(--line-light);border-radius:5px;outline:none">
               <button class="btn-b" onclick="addItemLibre()">➕ Agregar al carrito</button>
             </div>
           </div>
@@ -959,7 +991,7 @@ service cloud.firestore {
                 <input type="hidden" id="nc-cli" value="">
                 <div id="nc-cli-match" style="font-size:12px;color:#2C6E1A;font-weight:600;display:none;margin-top:4px">✅ <span id="nc-cli-match-nombre"></span> seleccionado</div>
               </div>
-              <p style="font-size:11px;color:#888"><span data-i18n="cliente_nuevo_q">¿Cliente nuevo?</span> <a href="#" onclick="openNuevoCliente();return false" style="color:#185FA5" data-i18n="crear_aqui">Crear aquí</a></p>
+              <p style="font-size:11px;color:#888"><span data-i18n="cliente_nuevo_q">¿Cliente nuevo?</span> <a href="#" onclick="openNuevoCliente();return false" style="color:var(--blue-600)" data-i18n="crear_aqui">Crear aquí</a></p>
             </div>
           </div>
           <div class="pcard">
@@ -1027,7 +1059,7 @@ service cloud.firestore {
               </div>
               <div id="nc-total-display" style="display:none;justify-content:space-between;align-items:center;padding:8px 12px;border-radius:6px;background:rgba(24,95,165,.1);margin-top:2px">
                 <span style="font-size:12px;font-weight:500" data-i18n="total_con_ivu">Total con IVU:</span>
-                <span id="nc-total-val" style="font-size:15px;font-weight:700;color:#185FA5">$0.00</span>
+                <span id="nc-total-val" style="font-size:15px;font-weight:700;color:var(--blue-600)">$0.00</span>
               </div>
             </div>
           </div>
@@ -1103,7 +1135,7 @@ service cloud.firestore {
             <div class="cfg-body">
               <p style="font-size:12px;color:#888;margin-bottom:10px">Aparece en recibos y mensajes de WhatsApp.</p>
               <div id="logo-preview-wrap" style="display:none;margin-bottom:10px;text-align:center">
-                <img id="logo-preview" style="max-height:60px;max-width:180px;border-radius:6px;border:1px solid #ccd8e8">
+                <img id="logo-preview" style="max-height:60px;max-width:180px;border-radius:6px;border:1px solid var(--line-light)">
                 <br><button class="xb d" style="margin-top:6px" onclick="removeLogo()">🗑 Quitar logo</button>
               </div>
               <label class="btn-b" style="cursor:pointer;display:inline-flex">
@@ -1355,7 +1387,7 @@ service cloud.firestore {
       </div>
       <div id="precio-total-display" style="display:none;justify-content:space-between;align-items:center;margin-bottom:12px;padding:8px 10px;border-radius:6px;background:rgba(24,95,165,.1)">
         <span style="font-size:12px;font-weight:500">Total con IVU:</span>
-        <span id="precio-total-val" style="font-size:15px;font-weight:700;color:#185FA5">$0.00</span>
+        <span id="precio-total-val" style="font-size:15px;font-weight:700;color:var(--blue-600)">$0.00</span>
       </div>
       <div class="fg"><label>Método de pago</label>
         <select id="precio-tipopago">
@@ -1387,7 +1419,7 @@ service cloud.firestore {
       <div class="fg">
         <label>Número del cliente</label>
         <div style="display:flex;gap:6px;align-items:center">
-          <span style="font-size:13px;padding:8px 10px;border-radius:6px;border:1px solid #ccd8e8;background:#f0f4f8;white-space:nowrap">+1</span>
+          <span style="font-size:13px;padding:8px 10px;border-radius:6px;border:1px solid var(--line-light);background:#f0f4f8;white-space:nowrap">+1</span>
           <input type="tel" id="wa-tel" placeholder="787-000-0000" style="flex:1">
         </div>
       </div>
@@ -1684,10 +1716,10 @@ function mostrarOverlayPin({primera, error}){
         <h3 style="margin-bottom:8px;font-size:16px">${tituloPaso}</h3>
         <p style="font-size:12px;color:#666;margin-bottom:14px">${descPaso}</p>
         ${error?`<p style="font-size:12px;color:#A32D2D;margin-bottom:10px">❌ ${error}</p>`:''}
-        <input type="password" id="pin-negocio-in" placeholder="PIN del negocio" style="width:100%;padding:10px;border:1px solid #ccd8e8;border-radius:6px;font-size:14px;margin-bottom:10px" autofocus>
-        ${primera?`<input type="password" id="pin-negocio-confirm" placeholder="Confirma el PIN" style="width:100%;padding:10px;border:1px solid #ccd8e8;border-radius:6px;font-size:14px;margin-bottom:10px">`:''}
+        <input type="password" id="pin-negocio-in" placeholder="PIN del negocio" style="width:100%;padding:10px;border:1px solid var(--line-light);border-radius:6px;font-size:14px;margin-bottom:10px" autofocus>
+        ${primera?`<input type="password" id="pin-negocio-confirm" placeholder="Confirma el PIN" style="width:100%;padding:10px;border:1px solid var(--line-light);border-radius:6px;font-size:14px;margin-bottom:10px">`:''}
         <div style="display:flex;gap:8px">
-          <button id="pin-negocio-ok" style="flex:1;padding:10px;border:none;border-radius:6px;background:#185FA5;color:#fff;cursor:pointer;font-weight:600">Continuar</button>
+          <button id="pin-negocio-ok" style="flex:1;padding:10px;border:none;border-radius:6px;background:var(--blue-600);color:#fff;cursor:pointer;font-weight:600">Continuar</button>
           ${primera?`<button id="pin-negocio-skip" style="padding:10px 14px;border:none;border-radius:6px;background:#eee;color:#444;cursor:pointer">Omitir</button>`:''}
         </div>
         ${!primera?`<p style="font-size:11px;color:#aaa;text-align:center;margin-top:10px">¿Olvidaste el PIN? Contacta al administrador: <a href="https://wa.me/${SOPORTE_WA}" target="_blank" style="color:#25D366">WhatsApp</a></p>`:''}
@@ -2688,7 +2720,7 @@ function renderCarrito(){
     el.innerHTML='<table class="tbl"><thead><tr><th>Producto</th><th style="width:70px">Cant.</th><th style="width:80px">Precio</th><th style="width:80px">Subtotal</th><th style="width:40px"></th></tr></thead><tbody>'+
       carrito.map((c,i)=>`<tr>
         <td style="font-size:13px">${c.nombre}</td>
-        <td><input type="number" min="1" step="1" value="${c.cantidad}" style="width:55px;font-size:12px;padding:4px 6px;border:1px solid #ccd8e8;border-radius:4px" onchange="changeCarritoCant(${i},this.value)"></td>
+        <td><input type="number" min="1" step="1" value="${c.cantidad}" style="width:55px;font-size:12px;padding:4px 6px;border:1px solid var(--line-light);border-radius:4px" onchange="changeCarritoCant(${i},this.value)"></td>
         <td style="font-size:12px">$${Number(c.precio).toFixed(2)}</td>
         <td style="font-size:12px;font-weight:600">$${(c.precio*c.cantidad).toFixed(2)}</td>
         <td><button class="xb d" style="padding:3px 7px" onclick="removeCarrito(${i})">🗑</button></td>
@@ -3254,7 +3286,7 @@ function verDetalle(id){
         <div class="phead" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px">
           <span>📝 Notas técnicas</span>
           <div style="display:flex;gap:6px;flex-wrap:wrap">
-            <button class="xb" style="background:#185FA5;border-color:#185FA5;color:#fff;font-size:11px;padding:4px 10px" onclick="abrirQR('${c.id}')">
+            <button class="xb" style="background:var(--blue-600);border-color:var(--blue-600);color:#fff;font-size:11px;padding:4px 10px" onclick="abrirQR('${c.id}')">
               🔗 QR seguimiento
             </button>
             <button class="xb" style="background:#25D366;border-color:#25D366;color:#fff;font-size:11px;padding:4px 10px" onclick="openWA('${c.id}')">
@@ -3265,7 +3297,7 @@ function verDetalle(id){
         </div>
         <div style="padding:10px 12px;min-height:44px;line-height:2" id="note-list-${c.id}">${notasHTML}</div>
         <div style="display:flex;gap:6px;padding:10px 12px;border-top:1px solid rgba(0,0,0,.08)">
-          <input type="text" id="note-inp-${c.id}" placeholder="Agregar nota técnica..." style="flex:1;font-size:12px;padding:7px 9px;border:1px solid #ccd8e8;border-radius:5px;outline:none" onkeydown="if(event.key==='Enter')addNota('${c.id}')">
+          <input type="text" id="note-inp-${c.id}" placeholder="Agregar nota técnica..." style="flex:1;font-size:12px;padding:7px 9px;border:1px solid var(--line-light);border-radius:5px;outline:none" onkeydown="if(event.key==='Enter')addNota('${c.id}')">
           <button class="btn-b" style="padding:7px 12px;font-size:12px" onclick="addNota('${c.id}')">➕</button>
         </div>
       </div>
@@ -3281,9 +3313,9 @@ function verDetalle(id){
         <div class="phead">🔧 Piezas / accesorios usados</div>
         <div style="padding:10px 12px" id="piezas-list-${c.id}">${piezasHTML(c)}</div>
         <div style="display:flex;gap:6px;padding:10px 12px;border-top:1px solid rgba(0,0,0,.08);flex-wrap:wrap">
-          <input type="text" id="pieza-inp-${c.id}" list="inv-predict-${c.id}" placeholder="Buscar pieza en inventario..." style="flex:2;min-width:160px;font-size:12px;padding:7px 9px;border:1px solid #ccd8e8;border-radius:5px;outline:none">
+          <input type="text" id="pieza-inp-${c.id}" list="inv-predict-${c.id}" placeholder="Buscar pieza en inventario..." style="flex:2;min-width:160px;font-size:12px;padding:7px 9px;border:1px solid var(--line-light);border-radius:5px;outline:none">
           <datalist id="inv-predict-${c.id}">${inventario.map(it=>`<option value="${(it.nombre+' — '+(it.sku||it.id)).replace(/"/g,'&quot;')}">${it.stock} en stock · $${Number(it.precio).toFixed(2)}</option>`).join('')}</datalist>
-          <input type="number" id="pieza-cant-${c.id}" min="1" step="1" value="1" style="width:60px;font-size:12px;padding:7px 9px;border:1px solid #ccd8e8;border-radius:5px;outline:none">
+          <input type="number" id="pieza-cant-${c.id}" min="1" step="1" value="1" style="width:60px;font-size:12px;padding:7px 9px;border:1px solid var(--line-light);border-radius:5px;outline:none">
           <button class="btn-b" style="padding:7px 12px;font-size:12px" onclick="addPieza('${c.id}')">➕ Usar pieza</button>
         </div>
       </div>
@@ -3296,7 +3328,7 @@ function verDetalle(id){
             <div>
               ${c.ivu?`<div style="font-size:11px;opacity:.6;margin-bottom:2px">Base: $${Number(c.precioBase||0).toFixed(2)} + IVU 11.50%: $${(Number(c.precio)-Number(c.precioBase||0)).toFixed(2)}</div>`:''}
               <div style="font-size:22px;font-weight:700" id="precio-display-${c.id}">$${Number(c.precio).toFixed(2)}</div>
-              ${c.ivu?`<div style="font-size:10px;color:#185FA5;font-weight:600">Incluye IVU</div>`:''}
+              ${c.ivu?`<div style="font-size:10px;color:var(--blue-600);font-weight:600">Incluye IVU</div>`:''}
               <button class="xb" style="margin-top:4px;font-size:11px" onclick="openEditPrecio('${c.id}')">✏️ Editar precio</button>
             </div>
             <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">${bEst(c.estado)} ${bPago(c.pago)}</div>
@@ -3865,7 +3897,7 @@ function renderReporte(){
     <div class="pcard"><div class="phead">🛍️ Ventas (Punto de venta)</div><div style="padding:14px">
       <div class="det-row"><span class="det-l">Ventas realizadas</span><span class="det-v">${ventas.length}</span></div>
       <div class="det-row"><span class="det-l">Unidades vendidas</span><span class="det-v">${ventasUnidades}</span></div>
-      <div class="det-row"><span class="det-l">IVU cobrado en ventas</span><span class="det-v" style="color:#185FA5">$${ventasIvu.toFixed(2)}</span></div>
+      <div class="det-row"><span class="det-l">IVU cobrado en ventas</span><span class="det-v" style="color:var(--blue-600)">$${ventasIvu.toFixed(2)}</span></div>
       <div class="det-row" style="font-weight:600;border-top:1px solid rgba(0,0,0,.1);margin-top:4px;padding-top:10px"><span class="det-l">Total vendido</span><span class="det-v" style="color:#27500A">$${ventasTotal.toFixed(2)}</span></div>
     </div></div>
     <div class="pcard"><div class="phead">📈 Ingresos totales</div><div style="padding:14px">
@@ -3905,7 +3937,7 @@ function renderReporte(){
     casos.sort((a,b)=>b.fecha.localeCompare(a.fecha)).map((c,i)=>{
       const base=c.precioBase!=null?Number(c.precioBase):Number(c.precio);
       const ivu=c.ivu?+(Number(c.precio)-base).toFixed(2):0;
-      return`<tr><td style="font-size:11px;opacity:.5">${i+1}</td><td><span>${ico(c.tipo)}</span> <strong style="font-size:12px">${c.modelo}</strong></td><td style="font-size:12px">${cn(c.cid)}</td><td style="font-size:11px;opacity:.7">${c.prob}</td><td style="font-size:11px;opacity:.7">${fmtD(c.fecha)}</td><td>${bEst(c.estado)}</td><td>${bPago(c.pago)}</td><td style="font-size:11px">${c.tipoPago?fmtMetodo(c.tipoPago):'—'}</td><td style="font-size:12px;color:#185FA5">${c.ivu?'$'+ivu.toFixed(2):'—'}</td><td style="font-size:13px;font-weight:600">$${Number(c.precio).toFixed(2)}</td></tr>`;
+      return`<tr><td style="font-size:11px;opacity:.5">${i+1}</td><td><span>${ico(c.tipo)}</span> <strong style="font-size:12px">${c.modelo}</strong></td><td style="font-size:12px">${cn(c.cid)}</td><td style="font-size:11px;opacity:.7">${c.prob}</td><td style="font-size:11px;opacity:.7">${fmtD(c.fecha)}</td><td>${bEst(c.estado)}</td><td>${bPago(c.pago)}</td><td style="font-size:11px">${c.tipoPago?fmtMetodo(c.tipoPago):'—'}</td><td style="font-size:12px;color:var(--blue-600)">${c.ivu?'$'+ivu.toFixed(2):'—'}</td><td style="font-size:13px;font-weight:600">$${Number(c.precio).toFixed(2)}</td></tr>`;
     }).join('')+
     '</tbody></table>':'<div class="empty"><span class="ei">📊</span>Sin datos</div>'}
   </div>
@@ -3913,7 +3945,7 @@ function renderReporte(){
     ${ventas.length?`<table class="tbl"><thead><tr><th style="width:28px">#</th><th style="width:130px">Fecha</th><th style="width:130px">Cliente</th><th>Productos</th><th style="width:80px">Unid.</th><th style="width:90px">Método</th><th style="width:70px">IVU</th><th style="width:80px">Total</th></tr></thead><tbody>`+
     ventas.slice().sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).map((v,i)=>{
       const itemsStr=v.items.map(it=>`${it.cantidad}x ${it.nombre}`).join(', ');
-      return`<tr><td style="font-size:11px;opacity:.5">${i+1}</td><td style="font-size:11px;opacity:.7">${new Date(v.fecha).toLocaleString('es-PR')}</td><td style="font-size:12px">${v.cliente}</td><td style="font-size:11px;opacity:.7">${itemsStr}</td><td style="font-size:12px;text-align:center">${v.items.reduce((s,it)=>s+Number(it.cantidad),0)}</td><td style="font-size:11px">${fmtPago(v)}</td><td style="font-size:12px;color:#185FA5">${v.ivu?'$'+Number(v.ivuAmt).toFixed(2):'—'}</td><td style="font-size:13px;font-weight:600">$${Number(v.total).toFixed(2)}</td></tr>`;
+      return`<tr><td style="font-size:11px;opacity:.5">${i+1}</td><td style="font-size:11px;opacity:.7">${new Date(v.fecha).toLocaleString('es-PR')}</td><td style="font-size:12px">${v.cliente}</td><td style="font-size:11px;opacity:.7">${itemsStr}</td><td style="font-size:12px;text-align:center">${v.items.reduce((s,it)=>s+Number(it.cantidad),0)}</td><td style="font-size:11px">${fmtPago(v)}</td><td style="font-size:12px;color:var(--blue-600)">${v.ivu?'$'+Number(v.ivuAmt).toFixed(2):'—'}</td><td style="font-size:13px;font-weight:600">$${Number(v.total).toFixed(2)}</td></tr>`;
     }).join('')+
     '</tbody></table>':'<div class="empty"><span class="ei">🛍️</span>Sin ventas registradas</div>'}
   </div>
@@ -3938,7 +3970,7 @@ function renderGraficasReporte({mesesLabels,repPorMes,ventaPorMes,porMetodo,porE
     chartsReporte.ingresos=new Chart(ctxIngresos,{
       type:'bar',
       data:{labels:mesesLabels,datasets:[
-        {label:'Reparaciones',data:repPorMes,backgroundColor:'#185FA5'},
+        {label:'Reparaciones',data:repPorMes,backgroundColor:'#1668c7'},
         {label:'Ventas',data:ventaPorMes,backgroundColor:'#27500A'}
       ]},
       options:{responsive:true,scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>'$'+v}}},plugins:{legend:{position:'bottom'}}}
@@ -3950,7 +3982,7 @@ function renderGraficasReporte({mesesLabels,repPorMes,ventaPorMes,porMetodo,porE
       type:'pie',
       data:{labels:['Cash','ATH','ATH Móvil','Otro'],datasets:[{
         data:[porMetodo.cash,porMetodo.ath,porMetodo['ath-movil'],porMetodo.otro],
-        backgroundColor:['#27500A','#185FA5','#633806','#791F1F']
+        backgroundColor:['#27500A','#1668c7','#633806','#791F1F']
       }]},
       options:{responsive:true,plugins:{legend:{position:'bottom'}}}
     });
@@ -3960,7 +3992,7 @@ function renderGraficasReporte({mesesLabels,repPorMes,ventaPorMes,porMetodo,porE
     const estLabels=Object.keys(porEst);
     chartsReporte.estados=new Chart(ctxEstados,{
       type:'bar',
-      data:{labels:estLabels,datasets:[{label:'Casos',data:estLabels.map(k=>porEst[k]),backgroundColor:'#185FA5'}]},
+      data:{labels:estLabels,datasets:[{label:'Casos',data:estLabels.map(k=>porEst[k]),backgroundColor:'#1668c7'}]},
       options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false}}}
     });
   }
@@ -4213,7 +4245,7 @@ async function importBackup(){
   const msg=document.getElementById('backup-msg');
   if(!file){msg.style.color='#A32D2D';msg.textContent='❌ Selecciona un archivo de backup primero';return}
   if(!confirm('⚠️ ¿Restaurar backup? Esto reemplazará TODOS los datos actuales.'))return;
-  msg.style.color='#185FA5';msg.textContent='⏳ Restaurando...';
+  msg.style.color='var(--blue-600)';msg.textContent='⏳ Restaurando...';
   const reader=new FileReader();
   reader.onload=async e=>{
     try{
@@ -4304,7 +4336,7 @@ function exportPDF(){
       alert('⚠️ Tu navegador bloqueó la ventana emergente. Permite ventanas emergentes para este sitio e inténtalo de nuevo.');
       return;
     }
-    w.document.write('<p style="font-family:sans-serif;padding:20px;color:#185FA5">Generando reporte…</p>');
+    w.document.write('<p style="font-family:sans-serif;padding:20px;color:var(--blue-600)">Generando reporte…</p>');
 
     const filtrados=casos.filter(c=>{
       if(!c.fecha||typeof c.fecha!=='string'||!c.fecha.includes('-'))return false;
@@ -4357,9 +4389,9 @@ function exportPDF(){
     <title>Reporte ${mesNombre} ${ano} — ${businessName||'JJ Electronic Repair'}</title>
     <style>
       *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#eef3f9;color:#1a3a5c;padding:36px}
+      body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:#eef3f9;color:var(--ink-700);padding:36px}
       .sheet{max-width:840px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 8px 30px rgba(15,40,64,.12)}
-      .pdf-header{display:flex;align-items:center;gap:16px;padding:28px 32px;background:linear-gradient(135deg,#0f2840,#185FA5);color:#fff}
+      .pdf-header{display:flex;align-items:center;gap:16px;padding:28px 32px;background:linear-gradient(135deg,var(--ink-900),var(--blue-600));color:#fff}
       .pdf-header img{max-height:52px;max-width:150px;background:#fff;border-radius:8px;padding:4px}
       .pdf-header h1{font-size:19px;letter-spacing:.3px;font-weight:700}
       .pdf-header p{font-size:11.5px;opacity:.85;margin-top:4px}
@@ -4369,20 +4401,20 @@ function exportPDF(){
       .content{padding:28px 32px 32px}
       .pdf-title{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:#8a9bb0;margin-bottom:14px}
       .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:26px}
-      .sumbox{border-radius:12px;padding:14px 14px;background:#f7fafd;border:1px solid #e2eaf3;border-top:3px solid #185FA5}
+      .sumbox{border-radius:12px;padding:14px 14px;background:#f7fafd;border:1px solid #e2eaf3;border-top:3px solid var(--blue-600)}
       .sumbox.ok{border-top-color:#2C6E1A}
       .sumbox.warn{border-top-color:#A32D2D}
       .sumbox.neu{border-top-color:#8A5A0A}
       .sumbox .n{font-size:19px;font-weight:800;letter-spacing:-.3px}
       .sumbox .l{font-size:10px;color:#7488a0;margin-top:3px;text-transform:uppercase;letter-spacing:.4px;font-weight:600}
       table{width:100%;border-collapse:collapse;font-size:11.5px}
-      thead th{background:#0f2840;color:#fff;text-align:left;padding:10px 10px;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px}
+      thead th{background:var(--ink-900);color:#fff;text-align:left;padding:10px 10px;font-weight:600;font-size:10.5px;text-transform:uppercase;letter-spacing:.3px}
       thead th:first-child{border-radius:8px 0 0 0}
       thead th:last-child{border-radius:0 8px 0 0}
       td{padding:9px 10px;border-bottom:1px solid #eef2f7}
-      tbody tr:nth-child(even){background:#f8fafc}
+      tbody tr:nth-child(even){background:var(--paper)}
       tbody tr:hover{background:#eef4fb}
-      tfoot td{font-weight:800;border-top:2px solid #0f2840;background:#eef3f9;padding:12px 10px;font-size:12.5px}
+      tfoot td{font-weight:800;border-top:2px solid var(--ink-900);background:#eef3f9;padding:12px 10px;font-size:12.5px}
       .pdf-footer{margin-top:26px;text-align:center;font-size:10.5px;color:#9aa9bb;padding-top:14px;border-top:1px solid #eef2f7}
       @media print{
         body{background:#fff;padding:0}
