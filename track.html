@@ -8,28 +8,28 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 
 <style>
 :root{
-  --ink-900:#0f2840; --blue-600:#1668c7;
-  --signal:#22c3b6; --signal-glow:rgba(34,195,182,.35);
+  --ink-900:#17181a; --blue-600:#FF6A1A;
+  --signal:#2BD576; --signal-glow:rgba(43,213,118,.35);
   --font-display:'Space Grotesk',-apple-system,sans-serif;
-  --font-body:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  --font-body:'Work Sans',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,'Courier New',monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--font-body);min-height:100vh;background:linear-gradient(135deg,var(--ink-900),#143352);padding:16px 12px}
+body{font-family:var(--font-body);min-height:100vh;background:linear-gradient(135deg,var(--ink-900),#2a2b2f);padding:16px 12px}
 .top h1,.chead h2,.msgcard h2{font-family:var(--font-display)}
 .pr,#pr-total,#pr-base,#pr-ivu{font-family:var(--font-mono)}
 .wrap{max-width:480px;margin:0 auto}
 .top{text-align:center;color:#fff;margin:14px 0 22px}
 .top img{width:56px;height:56px;border-radius:14px;margin-bottom:10px}
 .top h1{font-size:20px;font-weight:700}
-.top p{font-size:13px;color:#9ec2ea;margin-top:4px}
+.top p{font-size:13px;color:#b8b2a3;margin-top:4px}
 
 .state{display:none}
 .state.on{display:block}
@@ -44,9 +44,9 @@ body{font-family:var(--font-body);min-height:100vh;background:linear-gradient(13
 .msgcard p{font-size:13px;color:#667;line-height:1.5}
 
 .card{background:#fff;border-radius:16px;box-shadow:0 8px 30px rgba(0,0,0,.25);overflow:hidden;margin-bottom:14px}
-.chead{background:linear-gradient(135deg,#1e4a7a,var(--blue-600));color:#fff;padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.chead{background:linear-gradient(135deg,var(--ink-900),var(--blue-600));color:#fff;padding:16px 18px;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
 .chead h2{font-size:16px;font-weight:700}
-.chead .sub{font-size:11px;color:#a9cdf0;margin-top:3px}
+.chead .sub{font-size:11px;color:#f0c9ac;margin-top:3px}
 .badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff;border:1px solid rgba(255,255,255,.35)}
 
 .cbody{padding:16px 18px}
@@ -82,7 +82,7 @@ body{font-family:var(--font-body);min-height:100vh;background:linear-gradient(13
 .btn.wa{background:#25D366;color:#fff;grid-column:span 2}
 .btn.sec{background:#eef4fb;color:var(--blue-600)}
 
-.foot{text-align:center;color:#9ec2ea;font-size:11px;margin:18px 0 6px}
+.foot{text-align:center;color:#b8b2a3;font-size:11px;margin:18px 0 6px}
 
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;align-items:center;justify-content:center;padding:16px}
 .modal.on{display:flex}
