@@ -177,7 +177,22 @@ body{font-family:var(--font-body);min-height:100vh;background:linear-gradient(13
 </div>
 
 <script>
-const FB_CONFIG_KEY = 'jjrepair_fbconfig';
+// Configuración fija del proyecto Firebase de JJ Electronic Repair.
+// Estos valores NO son secretos — Firebase los diseña para ir directo
+// en el código del cliente; la seguridad real vive en las reglas de
+// Firestore (jjrepair_tracking: allow get, NUNCA allow list), no en
+// esconder este objeto. Por eso NO se lee de localStorage: el celular
+// del cliente que escanea el QR nunca visitó tu app antes, así que su
+// localStorage siempre está vacío — esa era la causa real de que los
+// clientes vieran "Error de conexión".
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyAOWjk4qgDQ_7PXWqI0gSEW-FaQbieWPWk",
+  authDomain: "jj-electronic-repair.firebaseapp.com",
+  projectId: "jj-electronic-repair",
+  storageBucket: "jj-electronic-repair.firebasestorage.app",
+  messagingSenderId: "526064283246",
+  appId: "1:526064283246:web:668c11500cb84919d3407f"
+};
 
 const ESTADOS = ['recibido','en proceso','espera pieza','espera desbloqueo','listo','entregado'];
 const ESTADO_LABEL = {
@@ -211,11 +226,7 @@ async function init(){
     const code=params.get('code');
     if(!code){ showState('s-notfound'); return; }
 
-    const raw=localStorage.getItem(FB_CONFIG_KEY);
-    if(!raw){ showState('s-error'); return; }
-    const cfg=JSON.parse(raw);
-
-    if(!firebase.apps.length) firebase.initializeApp(cfg);
+    if(!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
     const db=firebase.firestore();
 
     // Lee SOLO el documento espejo público (jjrepair_tracking/{code}).
